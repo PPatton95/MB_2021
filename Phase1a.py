@@ -49,6 +49,7 @@ for i in stations:
         dataset = data_v
     else:
         dataset = dataset.append(data_v)
+
         
 filepath = os.path.join(dw_directory, 'test.csv')
 #if os.path.exists(filepath):
@@ -91,6 +92,15 @@ ax.set_xticklabels(
 );
 
 fig = ax.get_figure()  
+
+#%% feature engineering
+
+## is it dark?
+
+## distance to another station
+
+## start and end of work/school
+
 
 # %% Pipeline
 
