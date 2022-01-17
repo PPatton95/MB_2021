@@ -48,7 +48,7 @@ weekdayMethod = 'dotw' # 'dotw' or 'wk_wknd'
 daylight_switch = True
 stationProximity_switch = True
 
-load_config = {"Interpolation Method":'',
+load_config = {"Interpolation Method":interpolationMethod,
           "Weekday Method"      :weekdayMethod,
           "Light_Dark"          :daylight_switch,
           "Station Proximity"   :stationProximity_switch}
@@ -64,7 +64,7 @@ for filename in os.listdir(df_directory):
            ind_stations = []
            for station in pickle_list[2:]:
                ind_stations.append(station)
-        else:
+       else:
             print("FALSE")
 
 datasetb = all_stations
