@@ -18,6 +18,9 @@ import sys
 #import heatmapz
 import seaborn as sns
 import matplotlib.pyplot as plt
+import plotly.express as px
+import scipy
+
 from pandas.plotting import scatter_matrix
 from sklearn.impute import SimpleImputer
 from sklearn.model_selection import train_test_split
@@ -29,6 +32,7 @@ from sklearn.preprocessing import OneHotEncoder
 from sklearn.ensemble import RandomForestRegressor
 from sklearn.metrics import mean_absolute_error
 from sklearn.decomposition import PCA
+
 
 # %% Generate Phase1a dataset
 
@@ -73,30 +77,41 @@ for i in range(0,len(dataset)):
         else:
             print('Error')
             break
+
+#%% clean
+
+#dataseta = dataset.drop(['weekday'], axis=1)
+
+imp_mean = SimpleImputer(missing_values=np.nan, strategy='median')
+imp_mean.fit(dataset)   
+
+dataset = pd.DataFrame(imp_mean.transform(dataset), columns=dataset.columns)
+
+# dataseta['weekday'] = dataset['weekday'].reindex().tolist()
+
+# dataseta = dataseta.dropna()
+
 # %%
 x = dataset["weekday"]
 y = dataset["bikes"]
 
 plt.scatter(x,y)
 
+# %%
 pca = PCA()
+pca.fit(dataset)
 
+# %%
 
-#%% clean
+pca_df = pandas.DataFrame(pca.components_)
 
-dataseta = dataset.drop(['weekday'], axis=1)
+components = pca.fit_transform(dataset)
 
-imp_mean = SimpleImputer(missing_values=np.nan, strategy='median')
-imp_mean.fit(dataseta)   
-
-dataseta = pd.DataFrame(imp_mean.transform(dataseta), columns=dataseta.columns)
-
-dataseta['weekday'] = dataset['weekday'].reindex().tolist()
-
-dataseta = dataseta.dropna()
-
-# %% Find correlations        
- 
+# %% Find correlations     
+fig = px.scatter_3d(components)   
+fig.update_traces(diagonal_visible=False)
+fig.show()
+# %%
 #features = pd.DataFrame(data_v.columns)
      
 # calculate pearsons coefficient for features
