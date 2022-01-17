@@ -28,7 +28,7 @@ pearson_switch = False # perform pearson correlation
 # Set load/save path 
 dw_directory = "./data" # Set data directory
 
-
+# %%
 
 
 
@@ -170,9 +170,37 @@ if stationProximity_switch == True:
 # TBD
 
 # %% Packing and storing datasets
-# For "All stations analysis"
-config = [""]
-dataset
+
+#Divide dataset into individual stations
+
+
+#count existing files
+count = 0
+dir = "data/Train/Dataframes/"
+for path in os.listdir(dir):
+    if os.path.isfile(os.path.join(dir, path)):
+        count += 1
+
+file_i = count+1
+filename = dir + 'df_' + str(file_i) 
+
+config = {"Interpolation Method":interpolationMethod,
+          "Weekday Method"      :weekdayMethod,
+          "Light_Dark"          :daylight_switch,
+          "Station Proximity"   :stationProximity_switch}
+
+all_stations = dataset
+save_list = [config,all_stations]
+
+stations = pd.unique(dataset['station'])
+
+for station in stations:
+    idx = dataset.index[dataset['station'] == station].tolist()
+    save_list.append(dataset.iloc[idx])
+
+ # %%  
+with open(filename,'wb') as f:
+    pickle.dump(save_list,f)
 
 # %% Correlation analysis 
 
