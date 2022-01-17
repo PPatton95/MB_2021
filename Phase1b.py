@@ -5,7 +5,9 @@ Created on Fri Jan 14 14:15:11 2022
 
 @author: philippatton
 """
+#%%
 
+## General libraries
 ## General libraries
 import numpy as np # Numpy
 import pandas as pd # Pandas
@@ -15,6 +17,8 @@ import datetime as datetime
 import os
 import logging
 import sys
+import astral
+import scipy
 #import heatmapz
 import seaborn as sns
 import matplotlib.pyplot as plt
@@ -28,6 +32,8 @@ from sklearn.impute import SimpleImputer
 from sklearn.preprocessing import OneHotEncoder
 from sklearn.ensemble import RandomForestRegressor
 from sklearn.metrics import mean_absolute_error
+from astral import LocationInfo
+from astral.sun import sun
 
 # %% Generate Phase1a dataset
 
@@ -94,9 +100,38 @@ ax.set_xticklabels(
 
 fig = ax.get_figure()  
 
+enc = OneHotEncoder(handle_unknown='ignore')
+cols_d = np.array(dataseta['weekday']).reshape(-1,1)
+enc.fit(cols_d)
+cols = enc.categories_[0].tolist()
+cols_d = pd.DataFrame(enc.transform(cols_d).toarray(), columns=cols)
+
+datasetb = dataseta.drop(['weekday'], axis=1)
+
+datasetb =  pd.concat([datasetb, cols_d], axis=1).reindex(datasetb.index)
+#%%
+pr = []
+for i in datasetb.columns:
+    x = scipy.stats.pearsonr(datasetb[i], dataseta['bikes'])[0]
+    # print(type(pr))
+    if len(pr) == 0:
+        pr = [x]
+    else:    
+    # #pr = [pr,x]
+        pr.append(x)
+        
+
+
 #%% feature engineering
 
 ## is it dark?
+
+city = LocationInfo(39.4502730411, -0.3333629598)
+
+dk = pd.to_datetime(dataseta['timestamp'], unit='s')
+
+for i in dk:
+    s = sun(city.observer, date=i)
 
 ## distance to another station
 

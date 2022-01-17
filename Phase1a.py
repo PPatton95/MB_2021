@@ -99,6 +99,8 @@ for i in dataset.columns:
     x = scipy.stats.pearsonr(dataseta[i], dataseta['bikes'])[0]
     pr = pr.append(x[0])
 
+    
+
 #%% feature engineering
 
 ## is it dark?
