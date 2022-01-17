@@ -153,6 +153,8 @@ for i in dk:
     else:
         darkness.append(d)
 
+datasetb['darkness'] = darkness
+
 #%%
 ## distance to another station
 import geopy.distance
@@ -169,9 +171,9 @@ near = []
 for si1 in no_s:
     distance = []
     for si2 in no_s:
-        if int(si2) ==0:
+        if si1 == si2:
             continue
-        dist = geopy.distance.geodesic(stations[int(si1),:], stations[int(si1)+1,:]).km
+        dist = geopy.distance.geodesic(stations[int(si1),:], stations[int(si2),:]).km
         if len(distance) ==0:
             distance = [dist]
         else:
@@ -183,7 +185,12 @@ for si1 in no_s:
         near.append(nearest)
 
 
+#%%
+def label_dist (row):
+    x = near[int(row['station'])-int(201)]
+    return x
 
+datasetb['distance'] = datasetb.apply (lambda row: label_dist(row), axis=1)
 ## start and end of work/school
 
 
@@ -191,8 +198,8 @@ for si1 in no_s:
 
 # %% Pipeline
 
-dataset_X = dataseta.drop(['bikes'], axis=1).copy()
-dataset_y = dataseta['bikes'].copy()
+dataset_X = datasetb.drop(['bikes'], axis=1).copy()
+dataset_y = datasetb['bikes'].copy()
 
 
 
@@ -236,8 +243,7 @@ preprocessor = ColumnTransformer(
 model = RandomForestRegressor(n_estimators=100, random_state=0)
 
 # Bundle preprocessing and modeling code in a pipeline
-clf = Pipeline(steps=[('preprocessor', preprocessor),
-                      ('scaler', StandardScaler()),
+clf = Pipeline(steps=[('scaler', StandardScaler()),
                       ('model', model)
                      ])
 
@@ -248,3 +254,4 @@ clf.fit(X_train, y_train)
 preds = clf.predict(X_test)
 
 print('MAE:', mean_absolute_error(y_test, preds))
+# %%
