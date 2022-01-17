@@ -6,7 +6,7 @@ Created on Fri Jan 14 14:15:11 2022
 @author: philippatton
 """
 
-## General libraries
+#%% General libraries
 import numpy as np # Numpy
 import pandas as pd # Pandas
 import pandas.plotting
@@ -94,9 +94,23 @@ ax.set_xticklabels(
 
 fig = ax.get_figure()  
 
+for i in dataset.columns:
+    pr = []
+    x = scipy.stats.pearsonr(dataseta[i], dataseta['bikes'])[0]
+    pr = pr.append(x[0])
+
 #%% feature engineering
 
 ## is it dark?
+
+city = LocationInfo(39.4502730411, -0.3333629598)
+
+dk = pd.to_datetime(dataseta['timestamp'], unit='s')
+
+for i in dk:
+    s = sun(city.observer, date=i)
+    
+    
 
 ## distance to another station
 
