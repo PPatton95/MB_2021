@@ -10,6 +10,7 @@ from dash.dependencies import Input, Output
 import pandas as pd
 import plotly.express as px
 from sklearn.decomposition import PCA
+from sklearn.preprocessing import OneHotEncoder
 from sklearn.impute import SimpleImputer
 
 dw_directory = "./data"
@@ -32,19 +33,32 @@ for i in stations:
         dataset = dataset.append(data_v)
 
 # Convert weekdays to numeric
-dotw = ["Monday","Tuesday","Wednesday","Thursday","Friday","Saturday","Sunday"]
+# dotw = ["Monday","Tuesday","Wednesday","Thursday","Friday","Saturday","Sunday"]
 
-for i in range(0,len(dataset)):
-    try:
-        dataset['weekday'][i] = dotw.index(dataset['weekday'].values[i])
-    except:
-        if 0 <= dataset['weekday'].values[i] < 7:
-            continue
-        else:
-            print('Error')
-            break
-
+# for i in range(0,len(dataset)):
+#     try:
+#         dataset['weekday'][i] = dotw.index(dataset['weekday'].values[i])
+#     except:
+#         if 0 <= dataset['weekday'].values[i] < 7:
+#             continue
+#         else:
+#             print('Error')
+#             break
+# %%
 #dataseta = dataset.drop(['weekday'], axis=1)
+# One-hot weekday encodings
+enc = OneHotEncoder(handle_unknown='ignore')
+cols_d = np.array(dataset['weekday']).reshape(-1,1)
+enc.fit(cols_d)
+cols = enc.categories_[0].tolist()
+cols_d = pd.DataFrame(enc.transform(cols_d).toarray(), columns=cols)
+
+dataset = dataset.drop(['weekday'], axis=1)
+
+dataset = pd.concat([dataset, cols_d.reindex(dataset.index)], axis=1)
+#dataset =  pd.concat([dataset, cols_d], axis=1)
+
+# %%
 
 imp_mean = SimpleImputer(missing_values=np.nan, strategy='median')
 imp_mean.fit(dataset)   
