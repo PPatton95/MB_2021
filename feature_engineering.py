@@ -1,4 +1,6 @@
 # %%
+from astral import LocationInfo
+from astral.sun import sun
 import numpy as np
 import os
 import dash
@@ -199,11 +201,36 @@ for station in stations:
     save_list.append(dataset.iloc[idx])
 
  # %%  
-with open(filename,'wb') as f:
-    pickle.dump(save_list,f)
+
+
+saveFlag = 'y'
+df_directory = "./data/Train/DataFrames"
+for filename in os.listdir(df_directory):
+    
+   with open(os.path.join(df_directory, filename), 'rb') as f:
+       print(os.path.join(df_directory, filename))
+       pickle_list = pickle.load(f)
+
+       if pickle_list[0] == config:
+
+           saveFlag = 'n'
+
+           while True:
+                saveFlag = input("Dataframe with current configuration already exists:  " + filename + "| Do you want to overwrite? (y/n) ")
+                if saveFlag != "y" or "n":
+                    print("Sorry, please enter y/n:")
+                    continue
+                else:
+                    break
+
+           if saveFlag == 'y':
+               os.remove(os.path.join(df_directory,filename))
+
+if saveFlag == 'y':
+    with open(filename,'wb') as f:        
+        pickle.dump(save_list,f)
 
 # %% Correlation analysis 
-
 if pearson_switch == True:
     ax = sns.heatmap(
         corr, 
@@ -233,9 +260,6 @@ if pearson_switch == True:
     # sns.pairplot(datasetb)
 
 #%%
-
-
-
 if pca_switch == True:
     #app = dash.Dash(__name__)
     app = JupyterDash(__name__)
