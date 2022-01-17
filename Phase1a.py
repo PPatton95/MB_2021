@@ -18,6 +18,9 @@ import sys
 #import heatmapz
 import seaborn as sns
 import matplotlib.pyplot as plt
+import plotly.express as px
+import scipy
+
 from pandas.plotting import scatter_matrix
 from sklearn.impute import SimpleImputer
 from sklearn.model_selection import train_test_split
@@ -28,6 +31,8 @@ from sklearn.impute import SimpleImputer
 from sklearn.preprocessing import OneHotEncoder
 from sklearn.ensemble import RandomForestRegressor
 from sklearn.metrics import mean_absolute_error
+from sklearn.decomposition import PCA
+
 
 # %% Generate Phase1a dataset
 
@@ -59,21 +64,54 @@ with open(filepath, 'r') as f:
     final_test = pd.read_csv(f)       
 
 
+# %%
+# Convert weekdays to numeric
+dotw = ["Monday","Tuesday","Wednesday","Thursday","Friday","Saturday","Sunday"]
+
+for i in range(0,len(dataset)):
+    try:
+        dataset['weekday'][i] = dotw.index(dataset['weekday'].values[i])
+    except:
+        if 0 <= dataset['weekday'].values[i] < 7:
+            continue
+        else:
+            print('Error')
+            break
+
 #%% clean
 
-dataseta = dataset.drop(['weekday'], axis=1)
+#dataseta = dataset.drop(['weekday'], axis=1)
 
 imp_mean = SimpleImputer(missing_values=np.nan, strategy='median')
-imp_mean.fit(dataseta)   
+imp_mean.fit(dataset)   
 
-dataseta = pd.DataFrame(imp_mean.transform(dataseta), columns=dataseta.columns)
+dataset = pd.DataFrame(imp_mean.transform(dataset), columns=dataset.columns)
 
-dataseta['weekday'] = dataset['weekday'].reindex().tolist()
+# dataseta['weekday'] = dataset['weekday'].reindex().tolist()
 
-dataseta = dataseta.dropna()
+# dataseta = dataseta.dropna()
 
-# %% Find correlations        
- 
+# %%
+x = dataset["weekday"]
+y = dataset["bikes"]
+
+plt.scatter(x,y)
+
+# %%
+pca = PCA()
+pca.fit(dataset)
+
+# %%
+
+pca_df = pandas.DataFrame(pca.components_)
+
+components = pca.fit_transform(dataset)
+
+# %% Find correlations     
+fig = px.scatter_3d(components)   
+fig.update_traces(diagonal_visible=False)
+fig.show()
+# %%
 #features = pd.DataFrame(data_v.columns)
      
 # calculate pearsons coefficient for features

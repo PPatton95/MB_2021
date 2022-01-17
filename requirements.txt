@@ -1,4 +1,9 @@
+dash
+jupyter_dash
+matplotlib
 numpy
 pandas
+plotly
 seaborn
+scipy
 sklearn
