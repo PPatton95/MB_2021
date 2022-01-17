@@ -169,17 +169,24 @@ near = []
 for si1 in no_s:
     distance = []
     for si2 in no_s:
-        dist = geopy.distance.geodesic(stations[si1,:], stations[si2,:]).km)
+        if int(si2) ==0:
+            continue
+        dist = geopy.distance.geodesic(stations[int(si1),:], stations[int(si1)+1,:]).km
         if len(distance) ==0:
             distance = [dist]
         else:
             distance.append(dist)
-    nearest = distance.min()
+    nearest = min(distance)
     if len(near) == 0:
         near = [nearest]
     else:
         near.append(nearest)
+
+
+
 ## start and end of work/school
+
+
 
 
 # %% Pipeline
