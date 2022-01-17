@@ -31,7 +31,8 @@ from sklearn.metrics import mean_absolute_error
 
 # %% Generate Phase1a dataset
 
-dw_directory = "/Users/philippatton/Documents/Data Science/morebikes2021"
+
+dw_directory = "./data"
 
 stations = np.linspace(201, 275, 75)
 
