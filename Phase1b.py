@@ -395,5 +395,8 @@ d_X = f_d[impfeat]
 
 preds = pd.DataFrame(clf.predict(d_X))
 # %%
-preds.to_csv('submission.csv')
+preds.index+=1
+# %%
+
+preds.to_csv('submission.csv', header=['bikes'])
 # %%
