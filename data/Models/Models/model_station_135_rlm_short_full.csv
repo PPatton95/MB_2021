@@ -1,0 +1,7 @@
+"feature","weight"
+"(Intercept)",-0.027966636356224
+"bikes_3h_ago",0.727159083606156
+"short_profile_bikes",0.0338139226571375
+"short_profile_3h_diff_bikes",0.279219134480636
+"full_profile_bikes",0.235149864570507
+"full_profile_3h_diff_bikes",0.352154074475315
