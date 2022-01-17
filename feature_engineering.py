@@ -54,13 +54,17 @@ dataset = pd.DataFrame(imp_mean.transform(dataset), columns=dataset.columns)
 #app = dash.Dash(__name__)
 app = JupyterDash(__name__)
 
+
+sl_min = 1
+sl_max = 10
+
 app.layout = html.Div([
     dcc.Graph(id="graph"),
     html.P("Number of components:"),
     dcc.Slider(
         id='slider',
-        min=2, max=5, value=3,
-        marks={i: str(i) for i in range(2,6)})
+        min=sl_min, max=sl_max, value=3,
+        marks={i: str(i) for i in range(sl_min,sl_max+1)})
 ])
 
 @app.callback(
