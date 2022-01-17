@@ -19,6 +19,8 @@ import logging
 import sys
 import astral
 import scipy
+import pytz
+
 #import heatmapz
 import seaborn as sns
 import matplotlib.pyplot as plt
@@ -40,11 +42,11 @@ from astral.sun import sun
 
 dw_directory = "./data"
 
-stations = np.linspace(201, 275, 75)
+no_stations = np.linspace(201, 275, 75)
 
 dataset = pd.DataFrame()
 
-for i in stations:
+for i in no_stations:
     # # Read dataset
     filepath = os.path.join(dw_directory, 'Train', 'Train', 'station_' + str(int(i)) + '_deploy.csv')
     #if os.path.exists(filepath):
@@ -119,8 +121,16 @@ for i in datasetb.columns:
     else:    
     # #pr = [pr,x]
         pr.append(x)
-        
 
+#%%
+fig = plt.barh(datasetb.columns, pr)
+#fig.tight_layout()
+#%%
+#plt.hist(datasetb['hour'], datasetb['bikes'])
+n, bins, patches = plt.hist(datasetb['bikes'], 50, density=True, facecolor='g', alpha=0.75)
+
+#%% 
+sns.pairplot(datasetb)
 
 #%% feature engineering
 
@@ -129,12 +139,46 @@ for i in datasetb.columns:
 city = LocationInfo(39.4502730411, -0.3333629598)
 
 dk = pd.to_datetime(dataseta['timestamp'], unit='s')
-
+darkness = []
 for i in dk:
     s = sun(city.observer, date=i)
+    srise = s['sunrise'].replace(tzinfo=None)
+    sset = s['sunset'].replace(tzinfo=None)
+    if i < sset and i > srise:
+        d = 0
+    else:
+        d = 1
+    if len(darkness) == 0:
+        darkness = [d]
+    else:
+        darkness.append(d)
 
+#%%
 ## distance to another station
+import geopy.distance
+from scipy import spatial
 
+stations_lat = pd.unique(datasetb['latitude'])
+stations_long = pd.unique(datasetb['longitude'])
+
+stations = np.stack((stations_lat, stations_long), axis=1)
+
+no_s = np.linspace(0,74, 75)
+
+near = []
+for si1 in no_s:
+    distance = []
+    for si2 in no_s:
+        dist = geopy.distance.geodesic(stations[si1,:], stations[si2,:]).km)
+        if len(distance) ==0:
+            distance = [dist]
+        else:
+            distance.append(dist)
+    nearest = distance.min()
+    if len(near) == 0:
+        near = [nearest]
+    else:
+        near.append(nearest)
 ## start and end of work/school
 
 
