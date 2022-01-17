@@ -28,6 +28,7 @@ from sklearn.impute import SimpleImputer
 from sklearn.preprocessing import OneHotEncoder
 from sklearn.ensemble import RandomForestRegressor
 from sklearn.metrics import mean_absolute_error
+from sklearn.decomposition import PCA
 
 # %% Generate Phase1a dataset
 
@@ -57,6 +58,28 @@ filepath = os.path.join(dw_directory, 'test.csv')
 # Read .txt file
 with open(filepath, 'r') as f:
     final_test = pd.read_csv(f)       
+
+
+# %%
+# Convert weekdays to numeric
+dotw = ["Monday","Tuesday","Wednesday","Thursday","Friday","Saturday","Sunday"]
+
+for i in range(0,len(dataset)):
+    try:
+        dataset['weekday'][i] = dotw.index(dataset['weekday'].values[i])
+    except:
+        if 0 <= dataset['weekday'].values[i] < 7:
+            continue
+        else:
+            print('Error')
+            break
+# %%
+x = dataset["weekday"]
+y = dataset["bikes"]
+
+plt.scatter(x,y)
+
+pca = PCA()
 
 
 #%% clean
