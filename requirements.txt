@@ -1,4 +1,6 @@
+astral
 dash
+geopy
 jupyter_dash
 matplotlib
 numpy
