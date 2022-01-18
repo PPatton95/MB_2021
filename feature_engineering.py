@@ -16,7 +16,7 @@ from utilities import data_saver
 from fe_utilities import interpolation, weekday_handler, darkness, pca_app, station_proximity
 
 # Save or no
-saveMode = False
+saveMode = True
 
 # Configure dataset generation
 interpolationMethod = 'sImpute' # "sImpute" or "delete"
@@ -26,7 +26,7 @@ stationProximity_switch = True
 scale_switch = True
 
 #Perform correlation studies
-pca_switch = True  # perform PCA analysis & display results
+pca_switch = False  # perform PCA analysis & display results
 pearson_switch = False # perform pearson correlation 
 
 # Set load/save path 
@@ -68,8 +68,9 @@ dataset_y = pd.DataFrame(dataset['bikes'].copy())
 dataset = dataset.drop(['bikes'],axis=1)
 
 # %% Impute or delete nan rows
-dataset = interpolation(dataset,interpolationMethod)
-dataset_y = interpolation(dataset_y,interpolationMethod)
+
+dataset = interpolation(dataset, interpolationMethod)
+dataset_y = interpolation(dataset_y, interpolationMethod)
 # %% Handling days of the week - one hot encoding per day or week/weekend
 dataset = weekday_handler(dataset,weekdayMethod,days)
 

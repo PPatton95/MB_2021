@@ -15,7 +15,7 @@ from scipy import spatial
 from sklearn.impute import SimpleImputer
 from sklearn.decomposition import PCA
  
-def interpolation(dataset,dataset_y,interpolationMethod):
+def interpolation(dataset,interpolationMethod):
     if interpolationMethod == "sImpute":
         imp_mean = SimpleImputer(missing_values=np.nan, strategy='median')      
         imp_mean.fit(dataset)

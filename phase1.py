@@ -24,7 +24,7 @@ from sklearn.metrics import mean_absolute_error
 from model_train_eval import bike_inference, bike_trainer
 from utilities import data_loader, data_saver
 
-Train_flag = False
+Train_flag = True
 
 # %% Load Dataset
 load_config = {"Test"                :False,
@@ -75,8 +75,6 @@ for i in range(0,len(individual_stations_X)):
                                        test_size=0.2,
                                        random_state=0)
     # atx = preprocess(atx)
-    print(atx)
-    print(aty)
 
     A_trainX.append(atx)
     A_validationX.append(avx)
@@ -106,7 +104,6 @@ btx, bvx, bty, bvy = train_test_split(all_stations_X,
                                     random_state=0)
 
 #%%
-Y.isna().any()
 
 #%%
 bike_trainer(btx,bty,model,"all_stations")
