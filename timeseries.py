@@ -50,7 +50,7 @@ for i in no_stations:
         # Read .txt file
     with open(filepath, 'r') as f:
          data_v = pd.read_csv(f)
-         
+         sns.lineplot(data = dataset, x = 'day', y = 'bikes')
     if len(dataset) == 0:
         dataset = data_v
     else:
