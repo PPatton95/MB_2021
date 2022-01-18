@@ -68,7 +68,8 @@ for i in range(0,len(individual_stations_X)):
                                        train_size=0.8, 
                                        test_size=0.2,
                                        random_state=0)
-    # atx = preprocess(atx)
+    atx = preprocess(atx)
+    
     print(atx)
     print(aty)
 
