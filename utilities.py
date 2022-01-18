@@ -1,5 +1,6 @@
 import os
 import pickle
+import joblib
 from joblib import dump
 
 def data_saver(config,save_list,XorY):
@@ -74,8 +75,19 @@ def data_loader(load_config,XorY):
     return all_stations,ind_stations
 
 def model_saver(model,model_name,name):
-    df_dir = "./data/Models/"
+    df_dir = "data/Models/"
     if 'sklearn' in model_name:
-        with open(os.path.join(df_dir,model_name,'/',name),'wb') as f:        
+        dir_path = os.path.join(df_dir, model_name)  # will return 'feed/address'
+        with open(os.path.join(dir_path,name),'wb') as f:        
             dump(model,f)
          
+def model_loader(model,model_name,name):
+    model_type = type(model)
+    df_dir = "./data/Models/"
+
+    if 'sklearn' and'randomforest' in str(model_type).lower():
+        dir_path = os.path.join(df_dir, model_name,name)
+        with open(dir_path,'rb') as f:
+            model = joblib.load(f)
+    
+    return model

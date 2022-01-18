@@ -1,4 +1,5 @@
 import pandas as pd
+import numpy as np
 from sklearn.pipeline import Pipeline
 from sklearn.impute import SimpleImputer
 from sklearn.preprocessing import OneHotEncoder
@@ -9,7 +10,7 @@ from sklearn.feature_selection import mutual_info_regression
 from sklearn.preprocessing import MinMaxScaler
 from sklearn.metrics import mean_absolute_error
 
-from utilities import model_saver
+from utilities import model_saver, model_loader
 
 def bike_trainer(df_X,df_Y,model,name):
     
@@ -24,21 +25,26 @@ def bike_trainer(df_X,df_Y,model,name):
         clf = Pipeline(steps=[('model', model)])
 
         # Preprocessing of training data, fit model 
+        df_Y = np.array(df_Y['bikes'])
+
         clf.fit(df_X, df_Y)
 
-        model_saver(clf,name,'sklearn_randomforest')
+        model_saver(clf,'sklearn_randomforest',name)
         # Preprocessing of validation data, get predictions
     else: 
         raise ValueError("I don't know what this is yet")
 
 
-def bike_inference(model,model_type,data):
-    
-    if model_type == "RandomForestRegressor":
+def bike_inference(model,model_name,data):
+    model_type = type(model)
 
-        prediction  = model.predict(data)
+    if 'sklearn' and'randomforest' in str(model_type).lower():
 
+        model = model_loader(model,'sklearn_randomforest',model_name)
     
-    return mean_absolute_error(result,prediction)
+
+        prediction  = model.predict(data[0])
+    
+    return prediction, mean_absolute_error(data[1],prediction)
 
 
