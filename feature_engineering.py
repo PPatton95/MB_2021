@@ -16,7 +16,7 @@ from utilities import data_saver
 from fe_utilities import interpolation, weekday_handler, darkness, pca_app, station_proximity
 
 # Save or no
-saveMode = True
+saveMode = False
 
 # Configure dataset generation
 interpolationMethod = 'sImpute' # "sImpute" or "delete"

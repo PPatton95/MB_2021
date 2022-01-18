@@ -1,6 +1,0 @@
-"feature","weight"
-"(Intercept)",1.93305757011022
-"bikes_3h_ago",0.772650305951557
-"full_profile_bikes",0.151268265792676
-"full_profile_3h_diff_bikes",0.606731684877385
-"temperature.C",-0.0432553822184754
