@@ -7,6 +7,7 @@ import geopy.distance
 from jupyter_dash import JupyterDash
 from dash.dependencies import Input, Output
 import pandas as pd
+import plotly.express as px
 from matplotlib import pyplot as plt
 import numpy as np
 import os
@@ -14,7 +15,7 @@ from scipy import spatial
 from sklearn.impute import SimpleImputer
 from sklearn.decomposition import PCA
  
-def interpolation(dataset,interpolationMethod):
+def interpolation(dataset,dataset_y,interpolationMethod):
     if interpolationMethod == "sImpute":
         imp_mean = SimpleImputer(missing_values=np.nan, strategy='median')      
         imp_mean.fit(dataset)
@@ -60,7 +61,7 @@ def weekday_handler(dataset,weekdayMethod,days):
             for day in weekDays:
                 idx = [i for i, e in enumerate(days[day]) if e != 0]
                 
-                x.append(np.mean([dataset['bikes'].values[i]for i in idx]))
+                x.append(np.mean([dataset_y['bikes'].values[i]for i in idx]))
 
             ticks = list(range(0, 7)) 
                 # labels = "Mon Tues Weds Thurs Fri Sat Sun".split()

@@ -1,5 +1,7 @@
 <<<<<<< HEAD
-/data/
+/data/*
+!data/Models/Models/
+!data/Train/Train/
 /__pycache__/
 /.ipynb_checkpoints/
 =======
