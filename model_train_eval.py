@@ -40,7 +40,7 @@ def bike_trainer(df_X,df_Y,model,name):
 
         model_saver(clf,'sklearn_randomforest',name)
         # Preprocessing of validation data, get predictions
-    elif "sklearn.linear_model._stochastic_gradient.SGDRegressor":
+    elif 'sklearn.linear_model._stochastic_gradient.SGDRegressor' in str(type(model)):
         clf = Pipeline(steps=[('model', model)])
 
         # Preprocessing of training data, fit model 

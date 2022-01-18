@@ -17,7 +17,7 @@ from fe_utilities import interpolation, weekday_handler, darkness, pca_app, stat
 
 # Save or no
 saveMode = True
-testFlag = True
+testFlag = False
 
 # Configure dataset generation
 interpolationMethod = 'sImpute' # "sImpute" or "delete"
@@ -33,27 +33,27 @@ pearson_switch = False # perform pearson correlation
 # Set load/save path 
 dw_directory = "./data" # Set data directory
 
-# Generating test set
-filepath = os.path.join(dw_directory, 'test.csv')
-#if os.path.exists(filepath):
-# Read .txt file
-with open(filepath, 'r') as f:
-    dataset = pd.read_csv(f)       
+# # Generating test set
+# filepath = os.path.join(dw_directory, 'test.csv')
+# #if os.path.exists(filepath):
+# # Read .txt file
+# with open(filepath, 'r') as f:
+#     dataset = pd.read_csv(f)       
 
 # Pull all stations into single df for pre-processing
-# stations = np.linspace(201, 275, 75)
-# dataset = pd.DataFrame()
+stations = np.linspace(201, 275, 75)
+dataset = pd.DataFrame()
 
-# for i in stations:
-#     filepath = os.path.join(dw_directory, 'Train', 'Train', 'station_' + str(int(i)) + '_deploy.csv')
+for i in stations:
+    filepath = os.path.join(dw_directory, 'Train', 'Train', 'station_' + str(int(i)) + '_deploy.csv')
 
-#     with open(filepath, 'r') as f:
-#         data_v = pd.read_csv(f)
+    with open(filepath, 'r') as f:
+        data_v = pd.read_csv(f)
          
-#         if len(dataset) == 0:
-#             dataset = data_v
-#         else:
-#             dataset = dataset.append(data_v)
+        if len(dataset) == 0:
+            dataset = data_v
+        else:
+            dataset = dataset.append(data_v)
 
 
 # %% Encode 'weekday' as one-hot weekday encodings
