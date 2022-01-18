@@ -7,6 +7,9 @@ from sklearn.preprocessing import StandardScaler
 from sklearn.compose import ColumnTransformer
 from sklearn.feature_selection import mutual_info_regression
 from sklearn.preprocessing import MinMaxScaler
+from sklearn.metrics import mean_absolute_error
+
+from utilities import model_saver
 
 def bike_trainer(df_X,df_Y,model,name):
     
@@ -20,7 +23,6 @@ def bike_trainer(df_X,df_Y,model,name):
         # Bundle preprocessing and modeling code in a pipeline
         clf = Pipeline(steps=[('scaler', StandardScaler()),('model', model)])
         # Preprocessing of training data, fit model 
-
         clf.fit(df_X, df_Y)
 
         model_saver(clf,name,'sklearn_randomforest')
