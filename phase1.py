@@ -68,8 +68,7 @@ for i in range(0,len(individual_stations_X)):
                                        train_size=0.8, 
                                        test_size=0.2,
                                        random_state=0)
-    atx = preprocess(atx)
-    
+    # atx = preprocess(atx)
     print(atx)
     print(aty)
 
@@ -89,6 +88,10 @@ btx, bvx, bty, bvy = train_test_split(all_stations_X,
                                     test_size=0.2,
                                     random_state=0)
 
+#%%
+Y.isna().any()
+
+#%%
 bike_trainer(btx,bty,model,"all_stations")
 
 
@@ -100,3 +103,5 @@ bike_trainer(btx,bty,model,"all_stations")
 
 # preds.to_csv('submission.csv', header=['bikes'])
 # # %%
+
+# %%

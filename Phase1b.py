@@ -252,7 +252,7 @@ dataset_y = datasetb['bikes'].copy()
 d_X = dataset_X[impfeat]
 
 # Break off validation set from training data
-X_train, X_test, y_train, y_test = train_test_split(d_X, dataset_y, 
+X_train, X_test, y_train, y_test = train_test_split(dataset_X, dataset_y, 
         
                                                                 train_size=0.8, test_size=0.2,
                                                                 random_state=0)
@@ -286,21 +286,38 @@ preprocessor = ColumnTransformer(
     ])
 
 #X_train.isna().any()
-
+#%%
+from sklearn.ensemble import AdaBoostRegressor, ExtraTreesRegressor
+from sklearn import linear_model
+from sklearn.linear_model import SGDRegressor
+from sklearn.svm import SVR
+from sklearn.ensemble import BaggingRegressor
 # Define model
-model = RandomForestRegressor(n_estimators=100, random_state=0)
 
+
+model1 = RandomForestRegressor(n_estimators=100, random_state=0)
+model2 = SGDRegressor(max_iter=1000000, tol=1e-3, learning_rate='optimal')
+model3 = linear_model.BayesianRidge()
+model4 = AdaBoostRegressor(random_state=0, n_estimators=500)
+model5 = ExtraTreesRegressor(n_estimators=100, random_state=0)
+model6 = BaggingRegressor(base_estimator=SVR(),
+                                 n_estimators=10, random_state=0)
+models = [model1, model2, model3, model4, model5, model6]
+#models = [model2]
 # Bundle preprocessing and modeling code in a pipeline
-clf = Pipeline(steps=[('model', model)
+n = 0
+for i in models:
+    n = n+1
+    clf = Pipeline(steps=[('model', i)
                      ])
 
 # Preprocessing of training data, fit model 
-clf.fit(X_train, y_train)
+    clf.fit(X_train, y_train)
 
 # Preprocessing of validation data, get predictions
-preds = clf.predict(X_test)
+    preds = clf.predict(X_test)
 
-print('MAE:', mean_absolute_error(y_test, preds))
+    print('MAE using model {}'.format(str(n)), mean_absolute_error(y_test, preds))
 # %%
 from sklearn.model_selection import cross_val_score
 scores = cross_val_score(clf, X_train, y_train, cv=5)
