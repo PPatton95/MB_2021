@@ -4,7 +4,7 @@ geopy
 jupyter_dash
 matplotlib
 numpy
-pandas=1.3.5
+pandas==1.3.5
 plotly
 seaborn
 scipy
