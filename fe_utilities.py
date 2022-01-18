@@ -93,7 +93,7 @@ def darkness(dataset):
 
     return darkness
 
-def pca_app(dataset,min_components,max_components):
+def pca_app(dataset,dataset_y,min_components,max_components):
     """
     Performs PCA analysis and posts results to interactive webpage
     Inputs:
@@ -136,7 +136,7 @@ def pca_app(dataset,min_components,max_components):
             components,
             dimensions=range(n_components),
             labels=labels,
-            color=dataset['bikes'],
+            color=dataset_y['bikes'],
             title=f'Total Explained Variance: {var:.2f}%')
         fig.update_traces(diagonal_visible=False)
         return fig
