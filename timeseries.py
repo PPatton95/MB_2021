@@ -129,5 +129,7 @@ features_filtered_direct = extract_relevant_features(data_t, data_t['bikes'],
 
 
 # %%
-from tsfresh.feature_extraction import extract_features
-extract_features(df, default_fc_parameters=settings)
+from tsfresh.feature_extraction import extract_features, MinimalFCParameters
+settings = MinimalFCParameters
+extract_features(data_t, column_id="station", column_sort="timestamp" default_fc_parameters=settings)
+# %%
