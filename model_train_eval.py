@@ -20,6 +20,15 @@ def bike_trainer(df_X,df_Y,model,name):
     # X_train = X_train[my_cols].copy()
     # #X_valid = X_valid_full[my_cols].copy()
     # X_test = X_test[my_cols].copy()
+    # model1 = RandomForestRegressor(n_estimators=100, random_state=0)
+    # model2 = SGDRegressor(max_iter=1000000, tol=1e-3, learning_rate='optimal')
+    # model3 = linear_model.BayesianRidge()
+    # model4 = AdaBoostRegressor(random_state=0, n_estimators=500)
+    # model5 = ExtraTreesRegressor(n_estimators=100, random_state=0)
+    # model6 = BaggingRegressor(base_estimator=SVR(),
+    #                                  n_estimators=10, random_state=0)
+
+
     if 'sklearn.ensemble._forest.RandomForestRegressor' in str(type(model)):
         # Bundle preprocessing and modeling code in a pipeline
         clf = Pipeline(steps=[('model', model)])
@@ -31,7 +40,44 @@ def bike_trainer(df_X,df_Y,model,name):
 
         model_saver(clf,'sklearn_randomforest',name)
         # Preprocessing of validation data, get predictions
+    elif "sklearn.linear_model._stochastic_gradient.SGDRegressor":
+        clf = Pipeline(steps=[('model', model)])
+
+        # Preprocessing of training data, fit model 
+        df_Y = np.array(df_Y['bikes'])
+
+        clf.fit(df_X, df_Y)
+
+        model_saver(clf,'sklearn_SDGregressor',name)
+    elif 'sklearn.linear_model._bayes.BayesianRidge' in str(type(model)):
+        clf = Pipeline(steps=[('model', model)])
+
+        # Preprocessing of training data, fit model 
+        df_Y = np.array(df_Y['bikes'])
+
+        clf.fit(df_X, df_Y)
+
+        model_saver(clf,'sklearn_BayesianRidge',name)
+    elif 'sklearn.ensemble._weight_boosting.AdaBoostRegressor' in str(type(model)):
+        clf = Pipeline(steps=[('model', model)])
+
+        # Preprocessing of training data, fit model 
+        df_Y = np.array(df_Y['bikes'])
+
+        clf.fit(df_X, df_Y)
+
+        model_saver(clf,'sklearn_Adaboost',name)
+    elif 'sklearn.ensemble._forest.ExtraTreesRegressor' in str(type(model)):
+        clf = Pipeline(steps=[('model', model)])
+
+        # Preprocessing of training data, fit model 
+        df_Y = np.array(df_Y['bikes'])
+
+        clf.fit(df_X, df_Y)
+
+        model_saver(clf,'sklearn_ExtraTrees',name)
     else: 
+
         raise ValueError("I don't know what this is yet")
 
 
