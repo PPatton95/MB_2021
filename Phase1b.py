@@ -37,7 +37,7 @@ from sklearn.metrics import mean_absolute_error
 from astral import LocationInfo
 from astral.sun import sun
 
-# %% Generate Phase1a dataset
+# %% Generate Phase1b dataset
 
 
 dw_directory = "./data"
