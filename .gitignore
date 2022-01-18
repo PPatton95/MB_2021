@@ -1,0 +1,7 @@
+<<<<<<< HEAD
+/data/
+/__pycache__/
+/.ipynb_checkpoints/
+=======
+data/
+>>>>>>> ef69918c (created gitignore)
