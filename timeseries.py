@@ -36,3 +36,54 @@ datasets = [[all_stations_X,all_stations_Y],
 
 
 # %%
+no_stations = np.linspace(201,275, 75)
+
+dw_directory = "./data"
+dw_directory = "/Users/philippatton/Documents/Data science/morebikes2021/"
+
+dataset = pd.DataFrame()
+
+for i in no_stations:
+    # # Read dataset
+    filepath = os.path.join(dw_directory, 'Train', 'Train', 'station_' + str(int(i)) + '_deploy.csv')
+    #if os.path.exists(filepath):
+        # Read .txt file
+    with open(filepath, 'r') as f:
+         data_v = pd.read_csv(f)
+         
+    if len(dataset) == 0:
+        dataset = data_v
+    else:
+        dataset = dataset.append(data_v)
+
+#%%
+
+sts = {}
+for i in no_stations:
+    # # Read dataset
+    filepath = os.path.join(dw_directory, 'Train', 'Train', 'station_' + str(int(i)) + '_deploy.csv')
+    #if os.path.exists(filepath):
+        # Read .txt file
+    with open(filepath, 'r') as f:
+         data_v = pd.read_csv(f)
+         
+         hours = np.linspace(0,23,24)
+         st = int(i)
+
+         sts[i] = pd.DataFrame()
+         for h in hours:
+             hrs = data_v[data_v['hour'] == h]
+             mean = np.array(hrs.mean())
+             mean = pd.DataFrame(mean, columns=data_v.columns)
+
+             if len(sts[i]) == 0:
+                 sts[i] = pd.DataFrame(mean)
+             else:
+                 sts[i] = sts[i].append(mean, ignore_index=True)
+
+#%%
+sts[i].head()
+
+#%%
+sns.lineplot(data = dataset, x = 'day', y = 'bikes')
+# %%
