@@ -1,0 +1,12 @@
+
+!/data/Models/
+/data/Models/**
+!/data/Models/Models/**
+
+!/data/Train/
+/data/Train/**
+!/data/Train/Train/**
+
+/__pycache__/
+/.ipynb_checkpoints/
+
