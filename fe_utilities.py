@@ -16,8 +16,8 @@ from sklearn.decomposition import PCA
  
 def interpolation(dataset,interpolationMethod):
     if interpolationMethod == "sImpute":
-        imp_mean = SimpleImputer(missing_values=np.nan, strategy='median')
-        imp_mean.fit(dataset)   
+        imp_mean = SimpleImputer(missing_values=np.nan, strategy='median')      
+        imp_mean.fit(dataset)
         output = pd.DataFrame(imp_mean.transform(dataset), columns=dataset.columns)
 
     elif interpolationMethod == 'delete':

@@ -15,6 +15,9 @@ import pickle
 from utilities import data_saver
 from fe_utilities import interpolation, weekday_handler, darkness, pca_app, station_proximity
 
+# Save or no
+saveMode = True
+
 # Configure dataset generation
 interpolationMethod = 'sImpute' # "sImpute" or "delete"
 weekdayMethod = 'dotw' # 'dotw' or 'wk_wknd'
@@ -61,11 +64,12 @@ days = pd.DataFrame(enc.transform(days).toarray(), columns=cols)
 
 dataset = dataset.drop(['weekday'], axis=1)
 
-dataset_y = dataset['bikes'].copy()
+dataset_y = pd.DataFrame(dataset['bikes'].copy())
 dataset = dataset.drop(['bikes'],axis=1)
 
 # %% Impute or delete nan rows
 dataset = interpolation(dataset,interpolationMethod)
+dataset_y = interpolation(dataset_y,interpolationMethod)
 # %% Handling days of the week - one hot encoding per day or week/weekend
 dataset = weekday_handler(dataset,weekdayMethod,days)
 

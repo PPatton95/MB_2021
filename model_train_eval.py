@@ -21,7 +21,8 @@ def bike_trainer(df_X,df_Y,model,name):
     # X_test = X_test[my_cols].copy()
     if 'sklearn.ensemble._forest.RandomForestRegressor' in str(type(model)):
         # Bundle preprocessing and modeling code in a pipeline
-        clf = Pipeline(steps=[('scaler', StandardScaler()),('model', model)])
+        clf = Pipeline(steps=[('model', model)])
+
         # Preprocessing of training data, fit model 
         clf.fit(df_X, df_Y)
 
