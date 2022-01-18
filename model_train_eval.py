@@ -42,7 +42,6 @@ def bike_inference(model,model_name,data):
 
         model = model_loader(model,'sklearn_randomforest',model_name)
     
-
         prediction  = model.predict(data[0])
     
     return prediction, mean_absolute_error(data[1],prediction)

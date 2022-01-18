@@ -10,13 +10,7 @@ data/
 >>>>>>> ef69918c (created gitignore)
 =======
 
-!/data/Models/
-/data/Models/**
-!/data/Models/Models
-
-!/data/Train/
-/data/Train/**
-!/data/Train/Train
+/data/USER
 
 /__pycache__/
 /.ipynb_checkpoints/

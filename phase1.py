@@ -67,6 +67,7 @@ training_ind   = {"predictions":[],"MAE":[]}
 validation_ind = {"predictions":[],"MAE":[]}
 
 for i in range(0,len(individual_stations_X)):
+    print("Station ",i, " of ", len(individual_stations_X))
     X = individual_stations_X[i]
     Y = individual_stations_Y[i]
 
@@ -75,8 +76,6 @@ for i in range(0,len(individual_stations_X)):
                                        test_size=0.2,
                                        random_state=0)
     # atx = preprocess(atx)
-    print(atx)
-    print(aty)
 
     A_trainX.append(atx)
     A_validationX.append(avx)
@@ -84,6 +83,7 @@ for i in range(0,len(individual_stations_X)):
     A_validationY.append(avy)
 
     model_name = "station_"+ str(i)
+
     if Train_flag == True:
         bike_trainer(atx,aty,model,model_name)
 
@@ -105,13 +105,11 @@ btx, bvx, bty, bvy = train_test_split(all_stations_X,
                                     test_size=0.2,
                                     random_state=0)
 
-#%%
-Y.isna().any()
-
-#%%
-bike_trainer(btx,bty,model,"all_stations")
 
 model_name = 'all_stations'
+
+if Train_flag == True:
+    bike_trainer(btx,bty,model,model_name)
 
 predictions, MAE = bike_inference(model,model_name,[btx,bty])
 training_all["predictions"]=predictions
@@ -123,4 +121,10 @@ validation_all["MAE"]        =MAE
 # preds.to_csv('submission.csv', header=['bikes'])
 # # %%
 
+# %%
+print("Ind Stations - Training: ",np.mean(training_ind["MAE"]))
+print("All Stations - Training: ",training_all["MAE"])
+
+print("Ind Stations - Validation: ",np.mean(validation_ind["MAE"]))
+print("All Stations - Validation: ",validation_all["MAE"])
 # %%

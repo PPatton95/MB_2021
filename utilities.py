@@ -9,18 +9,18 @@ def data_saver(config,save_list,XorY):
 
     #count existing files
     count = 1
-    df_dir = "./data/Train/DataFrames"
+    df_dir = "data/USER/DataFrames"
     
     
 
     filename = 'df_'+ XorY + str(count)
-
-    for path in os.listdir(df_dir):
-        if filename in os.path.join(df_dir, path):
-            count += 1
-            filename = 'df_'+ XorY + str(count)
-
-
+    try:
+        for path in os.listdir(df_dir):
+            if filename in os.path.join(df_dir, path):
+                count += 1
+                filename = 'df_'+ XorY + str(count)
+    except:
+           os.makedirs(os.path.join('./',df_dir))
         # if os.path.isfile(os.path.join(df_dir, path)) and XorY in os.path:
         #     count += 1
 
@@ -53,7 +53,7 @@ def data_saver(config,save_list,XorY):
             pickle.dump(save_list,f)
 
 def data_loader(load_config,XorY):
-    df_directory = "./data/Train/DataFrames"
+    df_directory = "data/USER/DataFrames"
     config_match = False
 
     for filename in os.listdir(df_directory):
@@ -75,15 +75,21 @@ def data_loader(load_config,XorY):
     return all_stations,ind_stations
 
 def model_saver(model,model_name,name):
-    df_dir = "data/Models/"
+    df_dir = "data/USER/Models/"
+    
     if 'sklearn' in model_name:
         dir_path = os.path.join(df_dir, model_name)  # will return 'feed/address'
+        try:
+            os.makedirs(dir_path)
+        except:
+            path_exists = True
         with open(os.path.join(dir_path,name),'wb') as f:        
             dump(model,f)
+
          
 def model_loader(model,model_name,name):
     model_type = type(model)
-    df_dir = "./data/Models/"
+    df_dir = "data/USER/Models/"
 
     if 'sklearn' and'randomforest' in str(model_type).lower():
         dir_path = os.path.join(df_dir, model_name,name)
