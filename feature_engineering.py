@@ -16,7 +16,8 @@ from utilities import data_saver
 from fe_utilities import interpolation, weekday_handler, darkness, pca_app, station_proximity
 
 # Save or no
-saveMode = False
+saveMode = True
+testFlag = True
 
 # Configure dataset generation
 interpolationMethod = 'sImpute' # "sImpute" or "delete"
@@ -33,26 +34,26 @@ pearson_switch = False # perform pearson correlation
 dw_directory = "./data" # Set data directory
 
 # Generating test set
-# filepath = os.path.join(dw_directory, 'test.csv')
-# #if os.path.exists(filepath):
-# # Read .txt file
-# with open(filepath, 'r') as f:
-#     dataset = pd.read_csv(f)       
+filepath = os.path.join(dw_directory, 'test.csv')
+#if os.path.exists(filepath):
+# Read .txt file
+with open(filepath, 'r') as f:
+    dataset = pd.read_csv(f)       
 
 # Pull all stations into single df for pre-processing
-stations = np.linspace(201, 275, 75)
-dataset = pd.DataFrame()
+# stations = np.linspace(201, 275, 75)
+# dataset = pd.DataFrame()
 
-for i in stations:
-    filepath = os.path.join(dw_directory, 'Train', 'Train', 'station_' + str(int(i)) + '_deploy.csv')
+# for i in stations:
+#     filepath = os.path.join(dw_directory, 'Train', 'Train', 'station_' + str(int(i)) + '_deploy.csv')
 
-    with open(filepath, 'r') as f:
-        data_v = pd.read_csv(f)
+#     with open(filepath, 'r') as f:
+#         data_v = pd.read_csv(f)
          
-        if len(dataset) == 0:
-            dataset = data_v
-        else:
-            dataset = dataset.append(data_v)
+#         if len(dataset) == 0:
+#             dataset = data_v
+#         else:
+#             dataset = dataset.append(data_v)
 
 
 # %% Encode 'weekday' as one-hot weekday encodings
@@ -63,14 +64,15 @@ cols = enc.categories_[0].tolist()
 days = pd.DataFrame(enc.transform(days).toarray(), columns=cols)
 
 dataset = dataset.drop(['weekday'], axis=1)
-
-dataset_y = pd.DataFrame(dataset['bikes'].copy())
-dataset = dataset.drop(['bikes'],axis=1)
+if testFlag == False:
+    dataset_y = pd.DataFrame(dataset['bikes'].copy())
+    dataset = dataset.drop(['bikes'],axis=1)
 
 # %% Impute or delete nan rows
 
 dataset = interpolation(dataset, interpolationMethod)
-dataset_y = interpolation(dataset_y, interpolationMethod)
+if testFlag == False:
+    dataset_y = interpolation(dataset_y, interpolationMethod)
 # %% Handling days of the week - one hot encoding per day or week/weekend
 dataset = weekday_handler(dataset,weekdayMethod,days)
 
@@ -88,7 +90,7 @@ if scale_switch == True:
     dataset = pd.DataFrame(scaler.transform(dataset), columns=dataset.columns)
 
 # %% Packing and storing datasets
-config = {"Test"                :False,
+config = {"Test"                :testFlag,
           "Interpolation Method":interpolationMethod,
           "Weekday Method"      :weekdayMethod,
           "Light_Dark"          :daylight_switch,
@@ -97,8 +99,16 @@ config = {"Test"                :False,
 
 
 if saveMode == True:
-    xy_dict = {"Name":['X','Y'],"Data":[dataset,dataset_y]}
-    for i in range(0,2):
+    if testFlag == False:
+        dataSETS = [dataset,dataset_y]
+    elif testFlag == True:
+        dataSETS = [dataset]
+    else:
+        raise ValueError("testFlag should be True or False")
+
+    xy_dict = {"Name":['X','Y'],"Data":dataSETS}
+    
+    for i in range(0,len(dataSETS)):
         df = xy_dict["Data"][i]
         XorY = xy_dict["Name"][i]
 
@@ -145,7 +155,7 @@ if pearson_switch == True:
     pr = []
     for i in dataset.columns:
         x = scipy.stats.pearsonr(dataset[i], dataset_y['bikes'])[0]
-        # print(type(pr))
+        
         if len(pr) == 0:
             pr = [x]
         else:    
@@ -157,4 +167,4 @@ if pearson_switch == True:
 
 #%%
 if pca_switch == True:
-    pca_app(dataset,dataset_y,2,8)
+    pca_app(dataset,dataset_y,2,10)
