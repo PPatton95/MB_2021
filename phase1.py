@@ -3,6 +3,7 @@
 #%autoreload 2
 
 ## General libraries
+from distutils.archive_util import make_tarball
 import numpy as np # Numpy
 import pandas as pd # Pandas
 import pandas.plotting
@@ -20,8 +21,10 @@ from sklearn.model_selection import train_test_split
 from sklearn.metrics import mean_absolute_error
 
 ## Usmodel_train_eval
-from model_train_eval import bike_trainer
+from model_train_eval import bike_inference, bike_trainer
 from utilities import data_loader, data_saver
+
+Train_flag = False
 
 # %% Load Dataset
 load_config = {"Test"                :False,
@@ -52,17 +55,20 @@ def preprocess(df):
     df = df[my_cols].copy()
     return df
 
+
+
 # %% PHASE 1A: Individually Trained Models
 A_trainX        = []
 A_validationX   = []
 A_trainY        = []
 A_validationY   = []
 
+training_ind   = {"predictions":[],"MAE":[]}
+validation_ind = {"predictions":[],"MAE":[]}
+
 for i in range(0,len(individual_stations_X)):
     X = individual_stations_X[i]
     Y = individual_stations_Y[i]
-
-    # X = X[~X.isin([np.nan, np.inf, -np.inf]).any(1)]
 
     atx,avx,aty,avy = train_test_split(X,Y, 
                                        train_size=0.8, 
@@ -76,11 +82,22 @@ for i in range(0,len(individual_stations_X)):
     A_validationX.append(avx)
     A_trainY.append(aty)
     A_validationY.append(avy)
-    atx = atx.reset_index()
-    aty = aty.reset_index()
-    bike_trainer(atx,aty,model,"station_"+ str(i))
+
+    model_name = "station_"+ str(i)
+    if Train_flag == True:
+        bike_trainer(atx,aty,model,model_name)
+
+    predictions, MAE = bike_inference(model,model_name,[atx,aty])
+    training_ind["predictions"].append(predictions)
+    training_ind["MAE"].append(MAE)
+    predictions, MAE = bike_inference(model,model_name,[avx,avy])
+    validation_ind["predictions"].append(predictions)
+    validation_ind["MAE"].append(MAE)      
 
 # %% PHASE 1B: Combined Model
+
+training_all   = {"predictions":[],"MAE":[]}
+validation_all = {"predictions":[],"MAE":[]}
 
 btx, bvx, bty, bvy = train_test_split(all_stations_X,
                                     all_stations_Y, 
@@ -94,12 +111,14 @@ Y.isna().any()
 #%%
 bike_trainer(btx,bty,model,"all_stations")
 
+model_name = 'all_stations'
 
-# # %% Evaluation
-# preds = pd.DataFrame(clf.predict(d_X))
-# # %%
-# preds.index+=1
-# # %%
+predictions, MAE = bike_inference(model,model_name,[btx,bty])
+training_all["predictions"]=predictions
+training_all["MAE"]        =MAE
+predictions, MAE = bike_inference(model,model_name,[bvx,bvy])
+validation_all["predictions"]=predictions
+validation_all["MAE"]        =MAE
 
 # preds.to_csv('submission.csv', header=['bikes'])
 # # %%
