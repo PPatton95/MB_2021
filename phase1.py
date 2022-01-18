@@ -3,7 +3,6 @@
 #%autoreload 2
 
 ## General libraries
-
 import numpy as np # Numpy
 import pandas as pd # Pandas
 import pandas.plotting
@@ -17,6 +16,7 @@ import seaborn as sns
 import matplotlib.pyplot as plt
 from pandas.plotting import scatter_matrix
 from sklearn.ensemble import RandomForestRegressor
+from sklearn.model_selection import train_test_split
 from sklearn.metrics import mean_absolute_error
 
 ## Usmodel_train_eval
@@ -38,50 +38,64 @@ datasets = [[all_stations_X,all_stations_Y],
 # %% Define model
 model = RandomForestRegressor(n_estimators=100, random_state=0)
 
-for df in datasets:
-    # Break off validation set from training data
-    X_train, X_test, y_train, y_test = train_test_split(dataset_X,
-                                                        dataset_y, 
-                                                        train_size=0.8, 
-                                                        test_size=0.2,
-                                                        random_state=0)
+def preprocess(df):
+        # Select categorical columns with relatively low cardinality (convenient but arbitrary)
+    categorical_cols = [cname for cname in df.columns if
+                        df[cname].dtype == "object"]
 
-output_keys = ["Training Results","Training Predictions","Validation Results","Validation Predictions"]
+    # Select numerical columns
+    numerical_cols = [cname for cname in df.columns if 
+                    df[cname].dtype in ['int64', 'float64']]
+
+    #Keep selected columns only
+    my_cols = categorical_cols + numerical_cols
+    df = df[my_cols].copy()
+    return df
+
 # %% PHASE 1A: Individually Trained Models
-ind_outputs = []
-ind_all_outputs = {output_keys[0]:[],output_keys[1]:[],
-                   output_keys[2]:[],output_keys[3]:[]}
+A_trainX        = []
+A_validationX   = []
+A_trainY        = []
+A_validationY   = []
 
-for d_set in individual_stations:
-    output = (bike_trainer(d_set,model))
-    ind_outputs.append(output)
-    for key in output_keys:
-        ind_all_outputs[key].extend(output[key])
+for i in range(0,len(individual_stations_X)):
+    X = individual_stations_X[i]
+    Y = individual_stations_Y[i]
 
-print("Training Error | Individual Models : MAE = ",
-    mean_absolute_error(ind_all_outputs["Training Results"],
-                        ind_all_outputs["Training Predictions"]))
+    # X = X[~X.isin([np.nan, np.inf, -np.inf]).any(1)]
 
-print("Validation Error | Individual Models : MAE = ",
-    mean_absolute_error(ind_all_outputs["Validation Results"],
-                        ind_all_outputs["Validation Predictions"]))
+    atx,avx,aty,avy = train_test_split(X,Y, 
+                                       train_size=0.8, 
+                                       test_size=0.2,
+                                       random_state=0)
+    # atx = preprocess(atx)
+    print(atx)
+    print(aty)
+
+    A_trainX.append(atx)
+    A_validationX.append(avx)
+    A_trainY.append(aty)
+    A_validationY.append(avy)
+    atx = atx.reset_index()
+    aty = aty.reset_index()
+    bike_trainer(atx,aty,model,"station_"+ str(i))
 
 # %% PHASE 1B: Combined Model
-all_outputs = bike_trainer(all_stations,model)
 
-print("Training Error | Combined Models : MAE = ",
-    mean_absolute_error(all_outputs["Training Results"],
-                        all_outputs["Training Predictions"]))
+btx, bvx, bty, bvy = train_test_split(all_stations_X,
+                                    all_stations_Y, 
+                                    train_size=0.8, 
+                                    test_size=0.2,
+                                    random_state=0)
 
-print("Validation Error | Combined Model : MAE = ",
-    mean_absolute_error(all_outputs["Validation Results"],
-                        all_outputs["Validation Predictions"]))
+bike_trainer(btx,bty,model,"all_stations")
 
-# %% Evaluation
-preds = pd.DataFrame(clf.predict(d_X))
-# %%
-preds.index+=1
-# %%
 
-preds.to_csv('submission.csv', header=['bikes'])
-# %%
+# # %% Evaluation
+# preds = pd.DataFrame(clf.predict(d_X))
+# # %%
+# preds.index+=1
+# # %%
+
+# preds.to_csv('submission.csv', header=['bikes'])
+# # %%

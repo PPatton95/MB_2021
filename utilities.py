@@ -1,5 +1,6 @@
 import os
 import pickle
+from joblib import dump
 
 def data_saver(config,save_list,XorY):
 
@@ -71,3 +72,10 @@ def data_loader(load_config,XorY):
         raise NameError('Configuration does not match any current dataframes. Check configuration or generate new data.')
 
     return all_stations,ind_stations
+
+def model_saver(model,model_name,name):
+    df_dir = "./data/Models/"
+    if 'sklearn' in model_name:
+        with open(os.path.join(df_dir,model_name,'/',name),'wb') as f:        
+            dump(model,f)
+         
