@@ -1,126 +1,87 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
-"""
-Created on Fri Jan 14 14:15:11 2022
-
-@author: philippatton
-"""
 #%%
+#%load_ext autoreload
+#%autoreload 2
 
 ## General libraries
-## General libraries
+
 import numpy as np # Numpy
 import pandas as pd # Pandas
 import pandas.plotting
 import pickle # Pickles
-import datetime as datetime
 import os
 import logging
 import sys
-import astral
 import scipy
 import pytz
-
-#import heatmapz
 import seaborn as sns
 import matplotlib.pyplot as plt
 from pandas.plotting import scatter_matrix
-from sklearn.impute import SimpleImputer
-from sklearn.model_selection import train_test_split
-from sklearn.preprocessing import StandardScaler
-from sklearn.compose import ColumnTransformer
-from sklearn.pipeline import Pipeline
-from sklearn.impute import SimpleImputer
-from sklearn.preprocessing import OneHotEncoder
 from sklearn.ensemble import RandomForestRegressor
 from sklearn.metrics import mean_absolute_error
-from astral import LocationInfo
-from astral.sun import sun
 
-# %% Generate Dataset
-dw_directory = "./data"
-df_directory = "./data/Train/DataFrames"
+## Usmodel_train_eval
+from model_train_eval import bike_trainer
+from utilities import data_loader, data_saver
 
-interpolationMethod = 'sImpute' # "sImpute" or "delete"
-weekdayMethod = 'dotw' # 'dotw' or 'wk_wknd'
-daylight_switch = True
-stationProximity_switch = True
+# %% Load Dataset
+load_config = {"Test"                :False,
+               "Interpolation Method":'sImpute', # "sImpute" or "delete"
+               "Weekday Method"      :'dotw',    # 'dotw' or 'wk_wknd'
+               "Light_Dark"          :True,
+               "Station Proximity"   :True,
+               "Scale Data"          :True}
 
-load_config = {"Interpolation Method":interpolationMethod,
-          "Weekday Method"      :weekdayMethod,
-          "Light_Dark"          :daylight_switch,
-          "Station Proximity"   :stationProximity_switch}
-
-for filename in os.listdir(df_directory):
-   with open(os.path.join(df_directory, filename), 'rb') as f:
-       print(os.path.join(df_directory, filename))
-       pickle_list = pickle.load(f)
-
-       if pickle_list[0] == load_config:
-           print("TRUE")
-           all_stations = pickle_list[1]
-           ind_stations = []
-           for station in pickle_list[2:]:
-               ind_stations.append(station)
-       else:
-            print("FALSE")
-
-datasetb = all_stations
-
-dataset_X = datasetb.drop(['bikes'], axis=1).copy()
-dataset_y = datasetb['bikes'].copy()
-
-
-
-# Break off validation set from training data
-X_train, X_test, y_train, y_test = train_test_split(dataset_X, dataset_y, 
-        
-                                                                train_size=0.8, test_size=0.2,
-                                                                random_state=0)
-
-# Select categorical columns with relatively low cardinality (convenient but arbitrary)
-categorical_cols = [cname for cname in X_train.columns if
-                    X_train[cname].dtype == "object"]
-
-# Select numerical columns
-numerical_cols = [cname for cname in X_train.columns if 
-                X_train[cname].dtype in ['int64', 'float64']]
-
-#Keep selected columns only
-my_cols = categorical_cols + numerical_cols
-X_train = X_train[my_cols].copy()
-#X_valid = X_valid_full[my_cols].copy()
-X_test = X_test[my_cols].copy()
-
-numerical_transformer = SimpleImputer(strategy='constant')
-
-# Preprocessing for categorical data
-categorical_transformer = Pipeline(steps=[
-    ('imputer', SimpleImputer(strategy='most_frequent')),
-    ('onehot', OneHotEncoder(handle_unknown='ignore'))
-])
-
-preprocessor = ColumnTransformer(
-    transformers=[
-        ('num', numerical_transformer, numerical_cols),
-        ('cat', categorical_transformer, categorical_cols)
-    ])
-
-#X_train.isna().any()
-
-# Define model
+all_stations_X, individual_stations_X = data_loader(load_config,'X')
+all_stations_Y, individual_stations_Y = data_loader(load_config,'Y')
+datasets = [[all_stations_X,all_stations_Y],
+            [individual_stations_X,individual_stations_Y]]
+# %% Define model
 model = RandomForestRegressor(n_estimators=100, random_state=0)
 
-# Bundle preprocessing and modeling code in a pipeline
-clf = Pipeline(steps=[('scaler', StandardScaler()),
-                      ('model', model)
-                     ])
+for df in datasets:
+    # Break off validation set from training data
+    X_train, X_test, y_train, y_test = train_test_split(dataset_X,
+                                                        dataset_y, 
+                                                        train_size=0.8, 
+                                                        test_size=0.2,
+                                                        random_state=0)
 
-# Preprocessing of training data, fit model 
-clf.fit(X_train, y_train)
+output_keys = ["Training Results","Training Predictions","Validation Results","Validation Predictions"]
+# %% PHASE 1A: Individually Trained Models
+ind_outputs = []
+ind_all_outputs = {output_keys[0]:[],output_keys[1]:[],
+                   output_keys[2]:[],output_keys[3]:[]}
 
-# Preprocessing of validation data, get predictions
-preds = clf.predict(X_test)
+for d_set in individual_stations:
+    output = (bike_trainer(d_set,model))
+    ind_outputs.append(output)
+    for key in output_keys:
+        ind_all_outputs[key].extend(output[key])
 
-print('MAE:', mean_absolute_error(y_test, preds))
+print("Training Error | Individual Models : MAE = ",
+    mean_absolute_error(ind_all_outputs["Training Results"],
+                        ind_all_outputs["Training Predictions"]))
+
+print("Validation Error | Individual Models : MAE = ",
+    mean_absolute_error(ind_all_outputs["Validation Results"],
+                        ind_all_outputs["Validation Predictions"]))
+
+# %% PHASE 1B: Combined Model
+all_outputs = bike_trainer(all_stations,model)
+
+print("Training Error | Combined Models : MAE = ",
+    mean_absolute_error(all_outputs["Training Results"],
+                        all_outputs["Training Predictions"]))
+
+print("Validation Error | Combined Model : MAE = ",
+    mean_absolute_error(all_outputs["Validation Results"],
+                        all_outputs["Validation Predictions"]))
+
+# %% Evaluation
+preds = pd.DataFrame(clf.predict(d_X))
+# %%
+preds.index+=1
+# %%
+
+preds.to_csv('submission.csv', header=['bikes'])
 # %%

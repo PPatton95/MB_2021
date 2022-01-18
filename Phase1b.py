@@ -244,10 +244,8 @@ impfeat= impfeat1.append(impfeat2)
 impfeat = impfeat['feature'].tolist()
 
 # %% Pipeline
-
 dataset_X = datasetb.drop(['bikes'], axis=1).copy()
 dataset_y = datasetb['bikes'].copy()
-
 
 #%%
 
