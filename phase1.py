@@ -121,6 +121,9 @@ validation_all["MAE"]        =MAE
 # preds.to_csv('submission.csv', header=['bikes'])
 # # %%
 
+
+
+
 # %%
 print("Ind Stations - Training: ",np.mean(training_ind["MAE"]))
 print("All Stations - Training: ",training_all["MAE"])
@@ -135,5 +138,26 @@ load_config = {"Test"                :True,
                "Station Proximity"   :True,
                "Scale Data"          :True}
 
-all_stations_X, individual_stations_X = data_loader(load_config,'X')
 
+all_stations_X, individual_stations_X = data_loader(load_config,'X')
+all_stations_X = all_stations_X.drop(['Id'],axis=1)
+
+# %%
+test_all   = {"predictions":[],"MAE":[]}
+test_ind   = {"predictions":[],"MAE":[]}
+for i in range(0,len(individual_stations_X)):
+    individual_stations_X[i] = individual_stations_X[i].drop(['Id'],axis=1)
+    model_name = "station_"+ str(i)
+    atx = individual_stations_X[i]
+    aty = np.zeros(len(atx))
+    predictions, MAE = bike_inference(model,model_name,[atx,aty])
+    test_ind["predictions"].append(predictions)
+    test_ind["MAE"].append(MAE)
+
+model_name = "all_stations"
+btx = all_stations_X
+bty = np.zeros(len(atx))
+predictions, MAE = bike_inference(model,model_name,[btx,bty])
+test_all["predictions"]=predictions
+test_all["MAE"]        =MAE
+# %%
