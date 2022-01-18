@@ -51,7 +51,7 @@ for i in no_stations:
     with open(filepath, 'r') as f:
          data_v = pd.read_csv(f)
          #print(i)
-         sns.lineplot(data = data_v, x = 'hour', y = 'bikes')
+         #sns.lineplot(data = data_v, x = 'hour', y = 'bikes')
     if len(dataset) == 0:
         dataset = data_v
     else:
@@ -109,9 +109,25 @@ for point in range(0, len(stations)):
 
 map
 # %%
+import tsfresh 
 
+#data_v['timestamp'].plot(subplots=True, sharex=True, figsize=(10,10))
+
+
+data_t = data_v[['station', 'timestamp', 'bikes']]
+data_t = data_t.dropna()
+data_t['timestamp'] = pd.to_datetime(data_t['timestamp'], unit='s')
+#%%
+from tsfresh import extract_features
+extracted_features = extract_features(data_t, column_id="station", column_sort="timestamp")
+
+# %%pip
+from tsfresh import extract_relevant_features
+
+features_filtered_direct = extract_relevant_features(data_t, data_t['bikes'],
+                                                     column_id='station', column_sort='timestamp')
 
 
 # %%
-
-
+from tsfresh.feature_extraction import extract_features
+extract_features(df, default_fc_parameters=settings)

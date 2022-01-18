@@ -39,7 +39,26 @@ all_stations_Y, individual_stations_Y = data_loader(load_config,'Y')
 datasets = [[all_stations_X,all_stations_Y],
             [individual_stations_X,individual_stations_Y]]
 # %% Define model
-model = RandomForestRegressor(n_estimators=100, random_state=0)
+from sklearn.ensemble import AdaBoostRegressor, ExtraTreesRegressor
+from sklearn import linear_model
+from sklearn.linear_model import SGDRegressor
+from sklearn.svm import SVR
+from sklearn.ensemble import BaggingRegressor
+# Define model
+
+
+model1 = RandomForestRegressor(n_estimators=100, random_state=0)
+model2 = SGDRegressor(max_iter=1000000, tol=1e-3, learning_rate='optimal')
+model3 = linear_model.BayesianRidge()
+model4 = AdaBoostRegressor(random_state=0, n_estimators=500)
+model5 = ExtraTreesRegressor(n_estimators=100, random_state=0)
+model6 = BaggingRegressor(base_estimator=SVR(),
+                                 n_estimators=10, random_state=0)
+models = [model1, model2, model3, model4, model5, model6]
+
+model = model1
+
+#%%
 
 def preprocess(df):
         # Select categorical columns with relatively low cardinality (convenient but arbitrary)
@@ -127,13 +146,4 @@ print("All Stations - Training: ",training_all["MAE"])
 
 print("Ind Stations - Validation: ",np.mean(validation_ind["MAE"]))
 print("All Stations - Validation: ",validation_all["MAE"])
-# %%
-load_config = {"Test"                :True,
-               "Interpolation Method":'sImpute', # "sImpute" or "delete"
-               "Weekday Method"      :'dotw',    # 'dotw' or 'wk_wknd'
-               "Light_Dark"          :True,
-               "Station Proximity"   :True,
-               "Scale Data"          :True}
-
-all_stations_X, individual_stations_X = data_loader(load_config,'X')
 
