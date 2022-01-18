@@ -1,4 +1,5 @@
 <<<<<<< HEAD
+<<<<<<< HEAD
 /data/*
 !data/Models/Models/
 !data/Train/Train/
@@ -7,3 +8,17 @@
 =======
 data/
 >>>>>>> ef69918c (created gitignore)
+=======
+
+!/data/Models/
+/data/Models/**
+!/data/Models/Models
+
+!/data/Train/
+/data/Train/**
+!/data/Train/Train
+
+/__pycache__/
+/.ipynb_checkpoints/
+
+>>>>>>> 9632a23f15361dbc101d96062e779a789039563d
