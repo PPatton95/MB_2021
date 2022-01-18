@@ -128,3 +128,12 @@ print("All Stations - Training: ",training_all["MAE"])
 print("Ind Stations - Validation: ",np.mean(validation_ind["MAE"]))
 print("All Stations - Validation: ",validation_all["MAE"])
 # %%
+load_config = {"Test"                :True,
+               "Interpolation Method":'sImpute', # "sImpute" or "delete"
+               "Weekday Method"      :'dotw',    # 'dotw' or 'wk_wknd'
+               "Light_Dark"          :True,
+               "Station Proximity"   :True,
+               "Scale Data"          :True}
+
+all_stations_X, individual_stations_X = data_loader(load_config,'X')
+
