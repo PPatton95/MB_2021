@@ -50,7 +50,8 @@ for i in no_stations:
         # Read .txt file
     with open(filepath, 'r') as f:
          data_v = pd.read_csv(f)
-         sns.lineplot(data = dataset, x = 'day', y = 'bikes')
+         #print(i)
+         sns.lineplot(data = data_v, x = 'hour', y = 'bikes')
     if len(dataset) == 0:
         dataset = data_v
     else:
@@ -85,5 +86,32 @@ for i in no_stations:
 sts[i].head()
 
 #%%
-sns.lineplot(data = dataset, x = 'day', y = 'bikes')
+sns.lineplot(data = data_v, x = 'day', y = 'bikes')
 # %%
+
+import geopandas
+import folium
+
+stations_lat = pd.unique(dataset['latitude'])
+stations_long = pd.unique(dataset['longitude'])
+stations_no = pd.DataFrame(pd.unique(dataset['station']), columns=['station'])
+
+stations = np.stack((stations_lat, stations_long), axis=1)
+stations = pd.DataFrame(stations, columns = ['latitude', 'longitude'])
+
+locations = stations[['latitude', 'longitude']]
+locationlist = locations.values.tolist()
+
+map = folium.Map(location = [39.4502730411,-0.333362], tiles='OpenStreetMap' , zoom_start = 9)
+
+for point in range(0, len(stations)):
+    folium.Marker(locationlist[point], popup=stations_no['station'][point]).add_to(map)
+
+map
+# %%
+
+
+
+# %%
+
+
