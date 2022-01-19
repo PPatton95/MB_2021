@@ -1,10 +1,12 @@
 <<<<<<< HEAD
 <<<<<<< HEAD
+/mb_2021venv
 /data/*
 !data/Models/Models/
 !data/Train/Train/
 /__pycache__/
 /.ipynb_checkpoints/
+/ENV_DIR
 =======
 data/
 >>>>>>> ef69918c (created gitignore)

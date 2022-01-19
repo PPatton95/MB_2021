@@ -29,32 +29,7 @@ def bike_trainer(df_X,df_Y,model,name):
     #                                  n_estimators=10, random_state=0)
 
 
-<<<<<<< HEAD
-    if 'sklearn.ensemble._forest.RandomForestRegressor' in str(type(model)):
-        # Bundle preprocessing and modeling code in a pipeline
-        clf = Pipeline(steps=[('model', model)])
-
-        # Preprocessing of training data, fit model 
-        df_Y = np.array(df_Y['bikes'])
-
-        clf.fit(df_X, df_Y)
-
-        model_saver(clf,'sklearn_randomforest',name)
-        # Preprocessing of validation data, get predictions
-    elif 'sklearn.linear_model._stochastic_gradient.SGDRegressor' in str(type(model)):
-        clf = Pipeline(steps=[('model', model)])
-
-        # Preprocessing of training data, fit model 
-        df_Y = np.array(df_Y['bikes'])
-
-        clf.fit(df_X, df_Y)
-
-        model_saver(clf,'sklearn_SDGregressor',name)
-    elif 'sklearn.linear_model._bayes.BayesianRidge' in str(type(model)):
-        clf = Pipeline(steps=[('model', model)])
-=======
     test_string = str(type(model)).lower()
->>>>>>> 03c58da4 (report commit)
 
     if 'sklearn' in test_string:
         model_name = test_string[test_string.rfind('.')+1:-2]

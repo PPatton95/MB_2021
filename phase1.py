@@ -63,7 +63,6 @@ all_stations_Y, individual_stations_Y = data_loader(load_config,'Y')
 datasets = [[all_stations_X,all_stations_Y],
             [individual_stations_X,individual_stations_Y]]
 # %% Define model
-<<<<<<< HEAD
 from sklearn.ensemble import AdaBoostRegressor, ExtraTreesRegressor
 from sklearn import linear_model
 from sklearn.linear_model import SGDRegressor
@@ -84,12 +83,6 @@ models = [model1, model2, model3, model4, model5, model6]
 model = model1
 
 #%%
-=======
-# model = RandomForestRegressor(n_estimators=100, random_state=0)
-model = AdaBoostRegressor(random_state=0, n_estimators=500)
-#kernel = DotProduct() + WhiteKernel()
-#model = GaussianProcessRegressor(kernel=kernel,random_state=0)
->>>>>>> 03c58da4 (report commit)
 
 def preprocess(df):
         # Select categorical columns with relatively low cardinality (convenient but arbitrary)
