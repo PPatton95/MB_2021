@@ -21,7 +21,7 @@ testFlag = False
 
 # Configure dataset generation
 interpolationMethod = 'sImpute' # "sImpute" or "delete"
-weekdayMethod = 'dotw' # 'dotw' or 'wk_wknd'
+weekdayMethod = 'wk_wknd' # 'dotw' or 'wk_wknd'
 daylight_switch = True
 stationProximity_switch = True
 scale_switch = True
@@ -33,6 +33,7 @@ pearson_switch = False # perform pearson correlation
 # Set load/save path 
 dw_directory = "./data" # Set data directory
 
+<<<<<<< HEAD
 # # Generating test set
 # filepath = os.path.join(dw_directory, 'test.csv')
 # #if os.path.exists(filepath):
@@ -54,6 +55,30 @@ for i in stations:
             dataset = data_v
         else:
             dataset = dataset.append(data_v)
+=======
+# Generating test set
+if testFlag == True:
+    filepath = os.path.join(dw_directory, 'test.csv')
+    #if os.path.exists(filepath):
+    # Read .txt file
+    with open(filepath, 'r') as f:
+        dataset = pd.read_csv(f)       
+else:
+    # Pull all stations into single df for pre-processing
+    stations = np.linspace(201, 275, 75)
+    dataset = pd.DataFrame()
+
+    for i in stations:
+        filepath = os.path.join(dw_directory, 'Train', 'Train', 'station_' + str(int(i)) + '_deploy.csv')
+
+        with open(filepath, 'r') as f:
+            data_v = pd.read_csv(f)
+            
+            if len(dataset) == 0:
+                dataset = data_v
+            else:
+                dataset = dataset.append(data_v)
+>>>>>>> 03c58da4 (report commit)
 
 
 # %% Encode 'weekday' as one-hot weekday encodings
@@ -62,6 +87,12 @@ days = np.array(dataset['weekday']).reshape(-1,1)
 enc.fit(days)
 cols = enc.categories_[0].tolist()
 days = pd.DataFrame(enc.transform(days).toarray(), columns=cols)
+
+redundant_columns = ['year','month','precipitation.l.m2']
+dataset = dataset.drop(redundant_columns,axis =1)
+
+less_significant_columns = ['relHumidity.HR','windDirection.grades','hour','day']
+dataset = dataset.drop(less_significant_columns,axis=1)
 
 dataset = dataset.drop(['weekday'], axis=1)
 if testFlag == False:
@@ -89,8 +120,12 @@ if scale_switch == True:
     scaler.fit(dataset)
     dataset = pd.DataFrame(scaler.transform(dataset), columns=dataset.columns)
 
+
 # %% Packing and storing datasets
-config = {"Test"                :testFlag,
+features = dataset.columns.tolist()
+# %%
+config = {"Features"            :features,
+          "Test"                :testFlag,
           "Interpolation Method":interpolationMethod,
           "Weekday Method"      :weekdayMethod,
           "Light_Dark"          :daylight_switch,

@@ -11,24 +11,24 @@ def data_saver(config,save_list,XorY):
     count = 1
     df_dir = "data/USER/DataFrames"
     
-    
-
     filename = 'df_'+ XorY + str(count)
     try:
         for path in os.listdir(df_dir):
-            if filename in os.path.join(df_dir, path):
-                count += 1
-                filename = 'df_'+ XorY + str(count)
+            print(path)
+            while True:
+                if filename in os.path.join(df_dir, path):
+                    count += 1
+                    filename = 'df_'+ XorY + str(count)
+                    print(filename)
+                else:
+                    break 
     except:
            os.makedirs(os.path.join('./',df_dir))
         # if os.path.isfile(os.path.join(df_dir, path)) and XorY in os.path:
         #     count += 1
 
-    
-
-    
-
     for fname in os.listdir(df_dir):
+        print(os.path.join(df_dir, fname))
         if XorY in fname:
             with open(os.path.join(df_dir, fname), 'rb') as f:
                 print(os.path.join(df_dir, fname))
@@ -37,7 +37,7 @@ def data_saver(config,save_list,XorY):
                 if pickle_list[0] == config:
                     saveFlag = 'n'
                     while True:
-                            saveFlag = input("Dataframe with current configuration already exists:  " + filename + "| Do you want to overwrite? (y/n) ")
+                            saveFlag = input("Dataframe with current configuration already exists:  " + fname + "| Do you want to overwrite? (y/n) ")
                             if saveFlag not in ["y","n"]:
                                 print("Sorry, please enter y/n:")
                                 continue
@@ -91,7 +91,7 @@ def model_loader(model,model_name,name):
     model_type = type(model)
     df_dir = "data/USER/Models/"
 
-    if 'sklearn' and'randomforest' in str(model_type).lower():
+    if 'sklearn' in model_name:
         dir_path = os.path.join(df_dir, model_name,name)
         with open(dir_path,'rb') as f:
             model = joblib.load(f)

@@ -2,6 +2,7 @@ astral
 dash
 geopy
 jupyter_dash
+latex
 matplotlib
 numpy
 pandas==1.3.5
@@ -9,3 +10,4 @@ plotly
 seaborn
 scipy
 sklearn
+
