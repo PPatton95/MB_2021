@@ -20,6 +20,7 @@ import sys
 import astral
 import scipy
 import pytz
+import tsfresh
 
 #import heatmapz
 import seaborn as sns
@@ -39,12 +40,12 @@ from astral.sun import sun
 
 # %% Generate Phase1b dataset
 
-
 dw_directory = "./data"
 
 no_stations = np.linspace(201, 275, 75)
 
 dataset = pd.DataFrame()
+
 
 for i in no_stations:
     # # Read dataset
@@ -194,21 +195,25 @@ datasetb['distance'] = datasetb.apply (lambda row: label_dist(row), axis=1)
 ## start and end of work/school
 
 #%% timeseries
-# dataset_ts = datasetb
-# dataset_ts['timestamp'] = pd.to_datetime(dataset_ts['timestamp'], unit='s')
-# import tsfresh
-# from tsfresh.feature_extraction import ComprehensiveFCParameters, MinimalFCParameters
-# settings = MinimalFCParameters()
+from tsfresh.feature_extraction import extract_features, MinimalFCParameters, ComprehensiveFCParameters
+settings = MinimalFCParameters()
 
-# from tsfresh.feature_extraction import extract_features
+def label_dist2 (row, i):
+    x = extracted_features[i]
 
-# from tsfresh.utilities.dataframe_functions import roll_time_series
-# #df_rolled = roll_time_series(datasetb, column_id="station", column_sort="timestamp")
-# #%%
-# df_features = extract_features(datasetb, column_id="station", column_sort="timestamp",
-#                 feature_extraction_settings = MinimalFeatureExtractionSettings())
+    x = x[row['day']]
+    return x
 
-#ts = extract_features(datasetb, default_fc_parameters=settings)
+for sta in no_stations:
+    data_t = datasetb[datasetb['station']==sta]
+    data_t = data_t[['day', 'hour', 'bikes_3h_ago']]
+    print(sta)
+    extracted_features = extract_features(data_t, column_id="day", column_sort="hour", default_fc_parameters=settings, n_jobs=0)
+
+    for i in extracted_features.columns:
+        datasetb[i] = datasetb.apply (lambda row: label_dist2(row, i), axis=1)
+
+
 #%% Feature Importance
 
 from sklearn.feature_selection import mutual_info_regression

@@ -114,12 +114,13 @@ import tsfresh
 #data_v['timestamp'].plot(subplots=True, sharex=True, figsize=(10,10))
 
 
-data_t = data_v[['station', 'timestamp', 'bikes']]
+data_t = dataset[['station', 'hour', 'bikes_3h_ago']]
+data_t = data_v[['day', 'hour', 'bikes_3h_ago']]
 data_t = data_t.dropna()
-data_t['timestamp'] = pd.to_datetime(data_t['timestamp'], unit='s')
+#data_t['timestamp'] = pd.to_datetime(data_t['timestamp'], unit='s')
 #%%
 from tsfresh import extract_features
-extracted_features = extract_features(data_t, column_id="station", column_sort="timestamp")
+extracted_features = extract_features(data_t, column_id="day", column_sort="hour", n_jobs=0)
 
 # %%pip
 from tsfresh import extract_relevant_features
@@ -129,7 +130,17 @@ features_filtered_direct = extract_relevant_features(data_t, data_t['bikes'],
 
 
 # %%
+from tsfresh.feature_extraction import extract_features, MinimalFCParameters, ComprehensiveFCParameters
+settings = MinimalFCParameters()
+extracted_features = extract_features(data_t, column_id="day", column_sort="hour", default_fc_parameters=settings, n_jobs=0)
+# %%
+import tsfresh 
+from tsfresh.examples.robot_execution_failures import download_robot_execution_failures, \
+    load_robot_execution_failures
+download_robot_execution_failures()
+timeseries, y = load_robot_execution_failures()
+# %%
+from tsfresh import extract_features
 from tsfresh.feature_extraction import extract_features, MinimalFCParameters
-settings = MinimalFCParameters
-extract_features(data_t, column_id="station", column_sort="timestamp" default_fc_parameters=settings)
+extracted_features = extract_features(timeseries, column_id="id", column_sort="time")
 # %%

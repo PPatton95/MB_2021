@@ -1,0 +1,29 @@
+
+
+import tsfresh 
+import numpy as np
+import pandas as pd
+
+# def run():
+#     multiprocessing.freeze_support()
+#     print('loop')
+
+# if __name__ == '__main__':
+#     run()
+
+
+from tsfresh.examples.robot_execution_failures import download_robot_execution_failures, \
+    load_robot_execution_failures
+download_robot_execution_failures()
+timeseries, y = load_robot_execution_failures()
+timeseries, y = load_robot_execution_failures()
+# %%
+from tsfresh import extract_features
+from tsfresh.feature_extraction import extract_features, MinimalFCParameters
+
+def my_extraction(timeseries):
+    extracted_features = extract_features(timeseries, column_id="id", column_sort="time", n_jobs=0)
+    return extracted_features
+
+my_extraction(timeseries)
+# %%
