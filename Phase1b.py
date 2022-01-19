@@ -198,20 +198,30 @@ datasetb['distance'] = datasetb.apply (lambda row: label_dist(row), axis=1)
 from tsfresh.feature_extraction import extract_features, MinimalFCParameters, ComprehensiveFCParameters
 settings = MinimalFCParameters()
 
-def label_dist2 (row, i):
-    x = extracted_features[i]
-
-    x = x[row['day']]
+def label_dist2 (row):
+    x = extracted_features
+    x = x.iloc[int(row['day'])-1]
     return x
+
+#no_stations1 = np.linspace(201,204,4)
+
+data_ts = pd.DataFrame()
 
 for sta in no_stations:
     data_t = datasetb[datasetb['station']==sta]
-    data_t = data_t[['day', 'hour', 'bikes_3h_ago']]
+    data_time = data_t[['day', 'hour', 'bikes_3h_ago']]
     print(sta)
-    extracted_features = extract_features(data_t, column_id="day", column_sort="hour", default_fc_parameters=settings, n_jobs=0)
+    extracted_features = extract_features(data_time, column_id="day", column_sort="hour", default_fc_parameters=settings, n_jobs=0)
 
-    for i in extracted_features.columns:
-        datasetb[i] = datasetb.apply (lambda row: label_dist2(row, i), axis=1)
+    #for i in extracted_features.columns:
+    #    datasetb[i] = datasetb.apply (lambda row: label_dist2(row, i), axis=1)
+    cols = extracted_features.columns.tolist()
+    data_t[cols] = data_t.apply (lambda row: label_dist2(row), axis=1)
+
+    if len(data_ts) == 0:
+        data_ts = data_t
+    else:
+        data_ts = data_ts.append(data_t)
 
 
 #%% Feature Importance
@@ -220,8 +230,8 @@ from sklearn.feature_selection import mutual_info_regression
 from sklearn.preprocessing import MinMaxScaler
 #dataset_X, dataset_y = load_breast_cancer(return_X_y=True)
 
-dataset_X = datasetb.drop(['bikes'], axis=1).copy()
-dataset_y = datasetb['bikes'].astype(float)
+dataset_X = data_ts.drop(['bikes'], axis=1).copy()
+dataset_y = data_ts['bikes'].astype(float)
 
 scaler = MinMaxScaler()
 scaler.fit(dataset_X)
@@ -255,7 +265,7 @@ dataset_y = datasetb['bikes'].copy()
 #%%
 
 d_X = dataset_X[impfeat]
-
+#%%
 # Break off validation set from training data
 X_train, X_test, y_train, y_test = train_test_split(dataset_X, dataset_y, 
         
@@ -307,7 +317,7 @@ model4 = AdaBoostRegressor(random_state=0, n_estimators=500)
 model5 = ExtraTreesRegressor(n_estimators=100, random_state=0)
 model6 = BaggingRegressor(base_estimator=SVR(),
                                  n_estimators=10, random_state=0)
-models = [model1, model2, model3, model4, model5, model6]
+models = [model1]
 #models = [model2]
 # Bundle preprocessing and modeling code in a pipeline
 n = 0
