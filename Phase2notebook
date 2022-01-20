@@ -132,6 +132,8 @@ for m in model_types:
     mod_gen_d[m] = mod_gen
 #%%
 
+from scipy import stats
+
 model_tests = {}
 for m in model_types:
     model_gen_test = mod_gen_d[m]
@@ -139,6 +141,13 @@ for m in model_types:
     features = model_gen_test.columns.tolist()
     av_weights = pd.DataFrame()
     for i in features:
+        #ax = sns.histplot(data=model_gen_test, y=i)
+        #model_gen_test.plot(y=i, use_index=True)
+        #plt.close()
+
+        #df = pd.DataFrame(np.random.randn(100, 3))
+        model_gen_test[(np.abs(stats.zscore(model_gen_test)) < 3).all(axis=1)]
+
         av = [model_gen_test[i].mean()]
         if len(av_weights) ==0:
             av_weights = pd.DataFrame([av])
@@ -154,7 +163,7 @@ def model_calc (row, features_v, intercept_v):
     row = np.array(row)
     #print(row)
     x = np.dot(row,features_v) + intercept_v
-    return x
+    return int(x)
 
 for m in model_types:
     m_test = model_tests[m]
