@@ -39,11 +39,9 @@ no_stations = np.linspace(201, 275, 75)
 
 dataset = pd.DataFrame()
 
-model_types = []
-
 for i in no_stations:
     # # Read dataset
-    filepath = os.path.join(dw_directory, 'Models', 'Models', 'model_station_' + str(int(i)) + '_deploy.csv')
+    filepath = os.path.join(dw_directory, 'Train', 'Train', 'station_' + str(int(i)) + '_deploy.csv')
     #if os.path.exists(filepath):
         # Read .txt file
     with open(filepath, 'r') as f:
@@ -59,4 +57,122 @@ filepath = os.path.join(dw_directory, 'test.csv')
 #if os.path.exists(filepath):
 # Read .txt file
 with open(filepath, 'r') as f:
-    final_test = pd.read_csv(f)   
+    final_test = pd.read_csv(f)    
+
+#%%
+
+m_stations = np.linspace(1,75,75)
+
+## import models
+model_types = ['rlm_full_temp', 'rlm_full', 'rlm_short_full_temp', 
+                'rlm_short_full', 'rlm_short_temp', 'rlm_short']
+
+models = {}
+for m in model_types:
+    # # Read model
+    models[m] = {}
+    for i in m_stations:
+        filepath = os.path.join(dw_directory, 'Models', 'Models',
+                                 'model_station_' + str(int(i)) + '_' + m + '.csv')
+        #if os.path.exists(filepath):
+            # Read .txt file
+        with open(filepath, 'r') as f:
+            model_d = pd.read_csv(f)
+        
+        models[m][i] = model_d
+
+#%% clean
+
+dataseta = dataset.drop(['weekday'], axis=1)
+
+imp_mean = SimpleImputer(missing_values=np.nan, strategy='median')
+imp_mean.fit(dataseta)   
+
+dataseta = pd.DataFrame(imp_mean.transform(dataseta), columns=dataseta.columns)
+
+dataseta['weekday'] = dataset['weekday'].reindex().tolist()
+
+dataseta = dataseta.dropna()    
+
+dataset_X = dataseta.drop(['bikes'], axis=1).copy()
+dataset_y = dataseta['bikes'].copy()
+
+X_train, X_test, y_train, y_test = train_test_split(dataset_X, dataset_y, 
+        
+                                                                train_size=0.8, test_size=0.2,
+                                                                random_state=0)
+
+
+# %%
+'''
+Model based generalisation
+'''
+
+mod_gen_d = {}
+
+for m in model_types:
+    mod_gen = pd.DataFrame()
+    for i in m_stations:
+        mod = models[m][i]
+
+        f = mod['feature'].tolist()
+        features_n = f[1:]
+        intercept_n = f[1]
+
+        w = mod['weight'].tolist()
+        features_v = w[1:]
+        intercept_v = w[1]
+
+        if len(mod_gen) == 0:
+            mod_gen = pd.DataFrame([w])
+            #mod_gen['intercept'] = intercept_v
+        else:
+            mod_gen = mod_gen.append([w])
+    mod_gen.columns = f
+    mod_gen_d[m] = mod_gen
+#%%
+
+model_tests = {}
+for m in model_types:
+    model_gen_test = mod_gen_d[m]
+
+    features = model_gen_test.columns.tolist()
+    av_weights = pd.DataFrame()
+    for i in features:
+        av = [model_gen_test[i].mean()]
+        if len(av_weights) ==0:
+            av_weights = pd.DataFrame([av])
+            #av_weights.columns = i
+        else:
+            av_weights = pd.concat([av_weights, pd.DataFrame([av])], axis=1)
+    av_weights.columns = features
+    model_tests[m] = av_weights
+
+#%%   
+# 
+def model_calc (row, features_v, intercept_v):
+    row = np.array(row)
+    #print(row)
+    x = np.dot(row,features_v) + intercept_v
+    return x
+
+for m in model_types:
+    m_test = model_tests[m]
+
+    features_n = m_test.columns.tolist()
+    features_n = features_n[1:]
+
+    intercept_v = [m_test.iloc[0,0]]
+    features_v = np.squeeze(m_test.drop(['(Intercept)'], axis=1).values.tolist())
+
+    X_test_filtered = X_test[features_n]
+    
+    df_X_test_filtered = X_test_filtered.copy()
+
+    df_X_test_filtered['bikes'] = df_X_test_filtered.apply (lambda row: model_calc(row, features_v, intercept_v), axis=1)
+    preds = X_test_filtered['bikes']
+
+    print('MAE using model {}'.format(str(i)), mean_absolute_error(y_test, preds))
+
+
+# %%
