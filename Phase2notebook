@@ -108,6 +108,11 @@ X_train, X_test, y_train, y_test = train_test_split(dataset_X, dataset_y,
 Model based generalisation
 '''
 
+'''
+create dict of all linear models by type
+'''
+
+
 mod_gen_d = {}
 
 for m in model_types:
@@ -132,7 +137,9 @@ for m in model_types:
     mod_gen_d[m] = mod_gen
 #%%
 
-from scipy import stats
+'''
+average all weights into a single linear model
+'''
 
 model_tests = {}
 for m in model_types:
@@ -141,12 +148,6 @@ for m in model_types:
     features = model_gen_test.columns.tolist()
     av_weights = pd.DataFrame()
     for i in features:
-        #ax = sns.histplot(data=model_gen_test, y=i)
-        #model_gen_test.plot(y=i, use_index=True)
-        #plt.close()
-
-        #df = pd.DataFrame(np.random.randn(100, 3))
-        model_gen_test = model_gen_test[(np.abs(stats.zscore(model_gen_test)) < 3).all(axis=1)]
 
         av = [model_gen_test[i].mean()]
         if len(av_weights) ==0:
@@ -159,6 +160,10 @@ for m in model_types:
 
 #%%   
 # 
+'''
+get a prediction score using test data
+'''
+
 def model_calc (row, features_v, intercept_v):
     row = np.array(row)
     #print(row)
@@ -173,6 +178,103 @@ for m in model_types:
 
     intercept_v = [m_test.iloc[0,0]]
     features_v = np.squeeze(m_test.drop(['(Intercept)'], axis=1).values.tolist())
+
+    X_test_filtered = X_test[features_n]
+    
+    df_X_test_filtered = X_test_filtered.copy()
+    #df_X_test_filtered = df_X_test_filtered.drop(['bikes'])
+
+    df_X_test_filtered['bikes'] = df_X_test_filtered.apply (lambda row: model_calc(row, features_v, intercept_v), axis=1)
+    preds = df_X_test_filtered['bikes']
+
+    print('MAE using model {}'.format(str(m)), mean_absolute_error(y_test, preds))
+
+
+# %%
+'''
+Filter best performing linear models
+'''
+
+def model_calc2 (row, features_v, intercept_v):
+    row = np.array(row)
+    #print(row)
+    x = np.dot(row,features_v) + intercept_v
+    return int(x)
+
+final_set = {}
+for m in model_types:
+    m_test = mod_gen_d[m]
+    length = np.linspace(0, 74, 75)
+    final_set_m = pd.DataFrame()
+    for i in length:
+        features = m_test.iloc[int(i)]
+        features_n = m_test.columns.tolist()
+        features_n = features_n[1:]
+
+        intercept_v = [m_test.iloc[int(i),0]]
+        features_v = features.values.tolist()
+        features_v = features[1:]
+
+        X_test_filtered = X_test[features_n]
+        
+        df_X_test_filtered = X_test_filtered.copy()
+        #df_X_test_filtered = df_X_test_filtered.drop(['bikes'])
+
+        df_X_test_filtered[i] = df_X_test_filtered.apply (lambda row: model_calc2(row, features_v, intercept_v), axis=1)
+        preds = df_X_test_filtered[i]
+
+        print('MAE using model {}'.format(str(m)), mean_absolute_error(y_test, preds))
+
+        if mean_absolute_error(y_test, preds) < 2.9:
+            if len(final_set_m) == 0:
+                vars = intercept_v + features_v.tolist()
+                vars_n = ['Intercept'] + features_n
+                final_set_m = pd.DataFrame([vars], columns=vars_n)
+            else:
+                vars = intercept_v + features_v.tolist()
+                vars_n = ['Intercept'] + features_n
+                vars = pd.DataFrame([vars], columns=vars_n)
+                final_set_m = final_set_m.append([vars])
+            final_set[m] = final_set_m
+        else:
+            continue
+
+ # %%
+'''
+Predictions using filtered linear models
+'''
+
+model_tests_filtered = {}
+for m in model_types:
+    model_gen_test = final_set[m]
+    features = model_gen_test.columns.tolist()
+    av_weights = pd.DataFrame()
+    for i in features:
+        av = model_gen_test[i].mean()
+        if len(av_weights) ==0:
+            av_weights = pd.DataFrame([av])
+        else:
+            av_weights = pd.concat([av_weights, pd.DataFrame([av])], axis=1)
+    av_weights.columns = features
+    model_tests_filtered[m] = av_weights
+
+
+
+#%%
+def model_calc (row, features_v, intercept_v):
+    row = np.array(row)
+    #print(row)
+    x = np.dot(row,features_v) + intercept_v
+    return int(x)
+
+for m in model_types:
+    m_test = model_tests_filtered[m]
+
+    features_n = m_test.columns.tolist()
+    features_n = features_n[1:]
+
+    intercept_v = [m_test.iloc[0,0]]
+    features_v = np.squeeze(m_test.drop(['Intercept'], axis=1).values.tolist())
 
     X_test_filtered = X_test[features_n]
     
