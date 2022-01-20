@@ -19,6 +19,8 @@ from pandas.plotting import scatter_matrix
 from sklearn.ensemble import AdaBoostRegressor
 from sklearn.ensemble import RandomForestRegressor
 from sklearn.gaussian_process import GaussianProcessRegressor
+from sklearn.tree import DecisionTreeRegressor
+from sklearn.gaussian_process.kernels import Matern
 from sklearn.gaussian_process.kernels import DotProduct, WhiteKernel
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import mean_absolute_error
@@ -28,34 +30,20 @@ from model_train_eval import bike_inference, bike_trainer
 from utilities import data_loader, data_saver
 
 Train_flag = True
+Test_flag = True
 
-features = ['station',
- 'latitude',
- 'longitude',
- 'numDocks',
- 'timestamp',
- 'weekhour',
- 'isHoliday',
- 'windMaxSpeed.m.s',
- 'windMeanSpeed.m.s',
- 'temperature.C',
- 'airPressure.mb',
- 'bikes_3h_ago',
- 'full_profile_3h_diff_bikes',
- 'full_profile_bikes',
- 'short_profile_3h_diff_bikes',
- 'short_profile_bikes',
- 'weekend',
- 'darkness',
- 'distance']
+features = (['station','latitude','longitude',
+            'numDocks','bikes_3h_ago', 
+            'full_profile_3h_diff_bikes','full_profile_bikes'])
 
 # %% Load Dataset
-load_config = {"Features"            :features,
+load_config = {"Group"               :'C_individual',
+               "Features"            :features,
                "Test"                :False,
                "Interpolation Method":'sImpute', # "sImpute" or "delete"
-               "Weekday Method"      :'wk_wknd',    # 'dotw' or 'wk_wknd'
-               "Light_Dark"          :True,
-               "Station Proximity"   :True,
+               "Weekday Method"      :'dotw',    # 'dotw' or 'wk_wknd'
+               "Light_Dark"          :False,
+               "Station Proximity"   :False,
                "Scale Data"          :True}
 
 all_stations_X, individual_stations_X = data_loader(load_config,'X')
@@ -78,10 +66,18 @@ model4 = AdaBoostRegressor(random_state=0, n_estimators=500)
 model5 = ExtraTreesRegressor(n_estimators=100, random_state=0)
 model6 = BaggingRegressor(base_estimator=SVR(),
                                  n_estimators=10, random_state=0)
+
 models = [model1, model2, model3, model4, model5, model6]
 
 model = model1
 
+# kernel1 = 1.0 * Matern(length_scale=1.0,length_scale_bounds=(1e-5,100000), nu=1.5)
+# kernel2 = WhiteKernel(noise_level=2.0)
+# kernel = kernel1 + kernel2
+# model = GaussianProcessRegressor(kernel=kernel,random_state=0)
+
+model = DecisionTreeRegressor(min_samples_leaf=1, random_state=0)
+# model = RandomForestRegressor(n_estimators=100, max_features=15,min_samples_leaf=5, random_state=0)
 #%%
 
 def preprocess(df):
@@ -111,7 +107,7 @@ validation_ind = {"predictions":[],"MAE":[]}
 
 for i in range(0,len(individual_stations_X)):
     print("Station ",i, " of ", len(individual_stations_X))
-    X = individual_stations_X[i]
+    X = individual_stations_X[i].drop(['station','latitude','longitude','numDocks'],axis = 1)
     Y = individual_stations_Y[i]
 
     atx,avx,aty,avy = train_test_split(X,Y, 
@@ -137,6 +133,8 @@ for i in range(0,len(individual_stations_X)):
     validation_ind["predictions"].append(predictions)
     validation_ind["MAE"].append(MAE)      
 
+print("Training: ",np.mean(training_ind['MAE']))
+print("Validation: ",np.mean(validation_ind['MAE']))
 # %% PHASE 1B: Combined Model
 
 training_all   = {"predictions":[],"MAE":[]}
@@ -144,8 +142,8 @@ validation_all = {"predictions":[],"MAE":[]}
 
 btx, bvx, bty, bvy = train_test_split(all_stations_X,
                                     all_stations_Y, 
-                                    train_size=0.8, 
-                                    test_size=0.2,
+                                    train_size=0.4, 
+                                    test_size=0.4,
                                     random_state=0)
 
 
@@ -174,24 +172,29 @@ print("All Stations - Training: ",training_all["MAE"])
 print("Ind Stations - Validation: ",np.mean(validation_ind["MAE"]))
 print("All Stations - Validation: ",validation_all["MAE"])
 # %%
-
-load_config = {"Test"                :True,
+    # if Test_flag == True:
+load_config = {"Group"               :'C_individual',
+               "Features"            :features,
+               "Test"                :True,
                "Interpolation Method":'sImpute', # "sImpute" or "delete"
                "Weekday Method"      :'dotw',    # 'dotw' or 'wk_wknd'
-               "Light_Dark"          :True,
-               "Station Proximity"   :True,
+               "Light_Dark"          :False,
+               "Station Proximity"   :False,
                "Scale Data"          :True}
 
-
+# %%
 all_stations_X, individual_stations_X = data_loader(load_config,'X')
-all_stations_X = all_stations_X.drop(['Id'],axis=1)
+all_stations_X, individual_stations_X = data_loader(load_config,'X')
+# all_stations_X = all_stations_X.drop(['Id'],axis=1)
 
 test_all   = {"predictions":[],"MAE":[]}
 test_ind   = {"predictions":[],"MAE":[]}
+
 for i in range(0,len(individual_stations_X)):
     model_name = "station_"+ str(i)
 
-    atx = individual_stations_X[i].drop(['Id'],axis=1)
+    # atx = individual_stations_X[i].drop(['Id'],axis=1)
+    atx = individual_stations_X[i].drop(['station','latitude','longitude','numDocks'],axis = 1)
     aty = pd.DataFrame(np.zeros(len(atx)))
 
     predictions, MAE = bike_inference(model,model_name,[atx,aty])
@@ -199,8 +202,9 @@ for i in range(0,len(individual_stations_X)):
         test_ind["predictions"]= test_ind["predictions"] + [p]
     test_ind["MAE"].append(MAE)
 
+#%%
 model_name = "all_stations"
-btx = all_stations_X
+btx = all_stations_X.drop(['station','latitude','longitude','numDocks'],axis = 1)
 bty = np.zeros(len(btx))
 predictions, MAE = bike_inference(model,model_name,[btx,bty])
 test_all["predictions"]=predictions
@@ -210,12 +214,12 @@ test_all["MAE"]        =MAE
 ind_test = pd.DataFrame({"bikes":test_ind["predictions"]})
 ind_test = ind_test.round()
 ind_test.index+=1
-ind_test.to_csv('data/USER/Submissions/' + 'reduced_individual_model' +'submission.csv',header=['bikes'])
+ind_test.to_csv('data/USER/Submissions/' + 'GPR_groupC_individual_model' +'submission.csv',header=['bikes'])
 # %%
 
 all_test = pd.DataFrame({"bikes":test_all["predictions"]})
 all_test = all_test.round()
 all_test.index+=1
-all_test.to_csv('data/USER/Submissions/' + 'reduced_all_stations' +'submission.csv',header=['bikes'])
+all_test.to_csv('data/USER/Submissions/' + 'GPR_groupC_all_stations' +'submission.csv',header=['bikes'])
 
 # %%
