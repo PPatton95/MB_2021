@@ -196,7 +196,7 @@ datasetb['distance'] = datasetb.apply (lambda row: label_dist(row), axis=1)
 
 #%% timeseries
 from tsfresh.feature_extraction import extract_features, MinimalFCParameters, ComprehensiveFCParameters
-settings = MinimalFCParameters()
+settings = ComprehensiveFCParameters()
 
 def label_dist2 (row):
     x = extracted_features
@@ -226,6 +226,9 @@ for sta in no_stations:
 
 #%% Feature Importance
 
+data_ts = data_ts.dropna(axis=1)
+
+#%%
 from sklearn.feature_selection import mutual_info_regression
 from sklearn.preprocessing import MinMaxScaler
 #dataset_X, dataset_y = load_breast_cancer(return_X_y=True)
@@ -253,8 +256,8 @@ prn = pd.DataFrame(pr, columns=['value'])
 prn['feature'] = dataset_X.columns
 
 #%%
-impfeat1 = prn[prn['value'] > 0.15]
-impfeat2 = prn[prn['value'] < -0.15]
+impfeat1 = prn[prn['value'] > 0.5]
+impfeat2 = prn[prn['value'] < -0.5]
 impfeat= impfeat1.append(impfeat2)
 impfeat = impfeat['feature'].tolist()
 
@@ -408,7 +411,68 @@ def label_dist (row):
     x = near[int(row['station'])-int(201)]
     return x
 
-f_d['distance'] = datasetb.apply (lambda row: label_dist(row), axis=1)
+f_d['distance'] = f_d.apply (lambda row: label_dist(row), axis=1)
+
+
+#%% timeseries
+from tsfresh.feature_extraction import extract_features, MinimalFCParameters, ComprehensiveFCParameters
+settings = ComprehensiveFCParameters()
+
+def label_dist2 (row):
+    x = extracted_features
+    #print(row)
+    #x = x.iloc['index'][int(row['day'])]
+    x = x.iloc[int(row['day']),:]
+    #print(x.index)
+    return x
+
+#no_stations1 = np.linspace(201,204,4)
+
+data_ts = pd.DataFrame()
+
+for sta in no_stations:
+    data_t = f_d[f_d['station']==sta]
+    data_time = data_t[['day', 'hour', 'bikes_3h_ago']]
+    print(sta)
+    extracted_features = extract_features(data_time, column_id="day", column_sort="hour", default_fc_parameters=settings, n_jobs=0)
+    #extracted_features = extracted_features.reindex()
+
+    #for i in extracted_features.columns:
+    #    datasetb[i] = datasetb.apply (lambda row: label_dist2(row, i), axis=1)
+    cols = extracted_features.columns.tolist()
+    data_t[cols] = data_t.apply (lambda row: label_dist2(row), axis=1)
+
+    if len(data_ts) == 0:
+        data_ts = data_t
+    else:
+        data_ts = data_ts.append(data_t)
+#%%
+x = extracted_features.iloc[int(5),:]
+
+def label_dist2 (row):
+    x = extracted_features
+    x = x.iloc[int(row['day'])-1]
+    return x
+
+#no_stations1 = np.linspace(201,204,4)
+
+data_ts = pd.DataFrame()
+
+for sta in no_stations:
+    data_t = datasetb[datasetb['station']==sta]
+    data_time = data_t[['day', 'hour', 'bikes_3h_ago']]
+    print(sta)
+    extracted_features = extract_features(data_time, column_id="day", column_sort="hour", default_fc_parameters=settings, n_jobs=0)
+
+    #for i in extracted_features.columns:
+    #    datasetb[i] = datasetb.apply (lambda row: label_dist2(row, i), axis=1)
+    cols = extracted_features.columns.tolist()
+    data_t[cols] = data_t.apply (lambda row: label_dist2(row), axis=1)
+
+    if len(data_ts) == 0:
+        data_ts = data_t
+    else:
+        data_ts = data_ts.append(data_t)
 
 #%%
 from sklearn.feature_selection import mutual_info_regression

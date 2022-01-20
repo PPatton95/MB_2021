@@ -1,29 +1,123 @@
 
+#%%
+## General libraries
+## General libraries
+import numpy as np # Numpy
+import pandas as pd # Pandas
+import pandas.plotting
+import pickle as pk # Pickles
+import datetime as datetime
+import os
+import logging
+import sys
+import astral
+import scipy
+import pytz
+import tsfresh
 
-import tsfresh 
-import numpy as np
-import pandas as pd
+#import heatmapz
+import seaborn as sns
+import matplotlib.pyplot as plt
+from pandas.plotting import scatter_matrix
+from sklearn.impute import SimpleImputer
+from sklearn.model_selection import train_test_split
+from sklearn.preprocessing import StandardScaler
+from sklearn.compose import ColumnTransformer
+from sklearn.pipeline import Pipeline
+from sklearn.impute import SimpleImputer
+from sklearn.preprocessing import OneHotEncoder
+from sklearn.ensemble import RandomForestRegressor
+from sklearn.metrics import mean_absolute_error
+from astral import LocationInfo
+from astral.sun import sun
 
-# def run():
-#     multiprocessing.freeze_support()
-#     print('loop')
+#%%
 
-# if __name__ == '__main__':
-#     run()
+dw_directory = "./data"
+
+no_stations = np.linspace(201, 275, 75)
+
+dataset = pd.DataFrame()
 
 
-from tsfresh.examples.robot_execution_failures import download_robot_execution_failures, \
-    load_robot_execution_failures
-download_robot_execution_failures()
-timeseries, y = load_robot_execution_failures()
-timeseries, y = load_robot_execution_failures()
+for i in no_stations:
+    # # Read dataset
+    filepath = os.path.join(dw_directory, 'Train', 'Train', 'station_' + str(int(i)) + '_deploy.csv')
+    #if os.path.exists(filepath):
+        # Read .txt file
+    with open(filepath, 'r') as f:
+         data_v = pd.read_csv(f)
+         
+    if len(dataset) == 0:
+        dataset = data_v
+    else:
+        dataset = dataset.append(data_v)
+
+        
+filepath = os.path.join(dw_directory, 'test.csv')
+#if os.path.exists(filepath):
+# Read .txt file
+with open(filepath, 'r') as f:
+    final_test = pd.read_csv(f)       
+
+
+#%% clean
+
+dataseta = dataset.drop(['weekday'], axis=1)
+
+imp_mean = SimpleImputer(missing_values=np.nan, strategy='median')
+imp_mean.fit(dataseta)   
+
+dataseta = pd.DataFrame(imp_mean.transform(dataseta), columns=dataseta.columns)
+
+dataseta['weekday'] = dataset['weekday'].reindex().tolist()
+
+dataseta = dataseta.dropna()
+
+#%% timeseries
+from tsfresh.feature_extraction import extract_features, MinimalFCParameters, ComprehensiveFCParameters
+settings = ComprehensiveFCParameters()
+
+def label_dist2 (row):
+    x = extracted_features
+    x = x.iloc[int(row['day'])-1]
+    return x
+
+#no_stations1 = np.linspace(201,204,4)
+
+data_ts = pd.DataFrame()
+
+for sta in no_stations:
+    data_t = dataseta[dataseta['station']==sta]
+    data_time = data_t[['day', 'hour', 'bikes_3h_ago']]
+    print(sta)
+    extracted_features = extract_features(data_time, column_id="day", column_sort="hour", default_fc_parameters=settings, n_jobs=0)
+
+    #for i in extracted_features.columns:
+    #    datasetb[i] = datasetb.apply (lambda row: label_dist2(row, i), axis=1)
+    cols = extracted_features.columns.tolist()
+    data_t[cols] = data_t.apply (lambda row: label_dist2(row), axis=1)
+
+    if len(data_ts) == 0:
+        data_ts = data_t
+    else:
+        data_ts = data_ts.append(data_t)
+
+#%%
+
+from tsfresh.utilities.dataframe_functions import roll_time_series
+
+data_t = dataseta[dataseta['station']==201]
+data_time = data_t[['day', 'hour', 'bikes_3h_ago']]
+df_rolled = roll_time_series(data_time, column_id="day", column_sort="hour")
+
 # %%
 from tsfresh import extract_features
-from tsfresh.feature_extraction import extract_features, MinimalFCParameters
+df_features = extract_features(df_rolled, column_id="id", column_sort="hour")
 
-def my_extraction(timeseries):
-    extracted_features = extract_features(timeseries, column_id="id", column_sort="time", n_jobs=0)
-    return extracted_features
 
-my_extraction(timeseries)
+# %%
+from tsfresh.utilities.dataframe_functions import make_forecasting_frame
+predictions = make_forecasting_frame(df_rolled['id'], kind=None, max_timeshift = None, rolling_direction=int(1))
+
 # %%
