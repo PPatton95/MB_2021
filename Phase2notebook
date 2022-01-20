@@ -168,11 +168,12 @@ for m in model_types:
     X_test_filtered = X_test[features_n]
     
     df_X_test_filtered = X_test_filtered.copy()
+    #df_X_test_filtered = df_X_test_filtered.drop(['bikes'])
 
     df_X_test_filtered['bikes'] = df_X_test_filtered.apply (lambda row: model_calc(row, features_v, intercept_v), axis=1)
-    preds = X_test_filtered['bikes']
+    preds = df_X_test_filtered['bikes']
 
-    print('MAE using model {}'.format(str(i)), mean_absolute_error(y_test, preds))
+    print('MAE using model {}'.format(str(m)), mean_absolute_error(y_test, preds))
 
 
 # %%
