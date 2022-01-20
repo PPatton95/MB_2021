@@ -15,15 +15,19 @@ import pickle
 from utilities import data_saver
 from fe_utilities import interpolation, weekday_handler, darkness, pca_app, station_proximity
 
+data_group = 'C_individual'
+features = (['station','latitude','longitude',
+            'numDocks','bikes_3h_ago', 
+            'full_profile_3h_diff_bikes','full_profile_bikes'])
 # Save or no
 saveMode = True
-testFlag = False
+testFlag = True
 
 # Configure dataset generation
 interpolationMethod = 'sImpute' # "sImpute" or "delete"
-weekdayMethod = 'wk_wknd' # 'dotw' or 'wk_wknd'
-daylight_switch = True
-stationProximity_switch = True
+weekdayMethod = 'dotw' # 'dotw' or 'wk_wknd'
+daylight_switch = False
+stationProximity_switch = False
 scale_switch = True
 
 #Perform correlation studies
@@ -64,16 +68,15 @@ enc.fit(days)
 cols = enc.categories_[0].tolist()
 days = pd.DataFrame(enc.transform(days).toarray(), columns=cols)
 
-redundant_columns = ['year','month','precipitation.l.m2']
-dataset = dataset.drop(redundant_columns,axis =1)
-
 less_significant_columns = ['relHumidity.HR','windDirection.grades','hour','day']
-dataset = dataset.drop(less_significant_columns,axis=1)
+# dataset = dataset.drop(less_significant_columns,axis=1)
 
 dataset = dataset.drop(['weekday'], axis=1)
 if testFlag == False:
     dataset_y = pd.DataFrame(dataset['bikes'].copy())
     dataset = dataset.drop(['bikes'],axis=1)
+else:
+    dataset = dataset.drop(["Id"],axis=1)
 
 # %% Impute or delete nan rows
 
@@ -96,11 +99,26 @@ if scale_switch == True:
     scaler.fit(dataset)
     dataset = pd.DataFrame(scaler.transform(dataset), columns=dataset.columns)
 
+redundant_columns = (['year','month','precipitation.l.m2',
+                        'short_profile_3h_diff_bikes','short_profile_bikes',
+                        'timestamp','day', 'hour', 'Monday','Tuesday',
+                        'Wednesday','Thursday','Friday','Saturday','Sunday',
+                        'weekhour','isHoliday','windMaxSpeed.m.s','windMeanSpeed.m.s',
+                        'windDirection.grades','temperature.C','relHumidity.HR',
+                        'airPressure.mb'])
+dataset = dataset.drop(redundant_columns,axis =1)
 
-# %% Packing and storing datasets
-features = dataset.columns.tolist()
+#%%
+if sorted(features) == sorted(dataset.columns.tolist()):
+    pass
+else:
+    print(sorted(features))
+    print(sorted(dataset.columns.tolist()))
+    raise ValueError("Features do not match those specified")
+    
 # %%
-config = {"Features"            :features,
+config = {"Group"               :data_group,
+          "Features"            :features,
           "Test"                :testFlag,
           "Interpolation Method":interpolationMethod,
           "Weekday Method"      :weekdayMethod,

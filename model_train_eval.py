@@ -40,6 +40,7 @@ def bike_trainer(df_X,df_Y,model,name):
         df_Y = np.array(df_Y['bikes'])
 
         clf.fit(df_X, df_Y)
+        print(clf.n_features_in_)
 
         model_saver(clf,'sklearn_'+model_name,name)
     else: 

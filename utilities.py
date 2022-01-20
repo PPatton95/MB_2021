@@ -16,7 +16,7 @@ def data_saver(config,save_list,XorY):
         for path in os.listdir(df_dir):
             print(path)
             while True:
-                if filename in os.path.join(df_dir, path):
+                if str(count) in path:
                     count += 1
                     filename = 'df_'+ XorY + str(count)
                     print(filename)

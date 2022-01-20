@@ -1,6 +1,7 @@
 astral
 dash
 geopy
+folium
 jupyter_dash
 latex
 matplotlib
