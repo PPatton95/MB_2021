@@ -1,0 +1,62 @@
+
+#%%
+
+## General libraries
+import numpy as np # Numpy
+import pandas as pd # Pandas
+import pandas.plotting
+import pickle as pk # Pickles
+import datetime as datetime
+import os
+import logging
+import sys
+import astral
+import scipy
+import pytz
+import tsfresh
+
+#import heatmapz
+import seaborn as sns
+import matplotlib.pyplot as plt
+from pandas.plotting import scatter_matrix
+from sklearn.impute import SimpleImputer
+from sklearn.model_selection import train_test_split
+from sklearn.preprocessing import StandardScaler
+from sklearn.compose import ColumnTransformer
+from sklearn.pipeline import Pipeline
+from sklearn.impute import SimpleImputer
+from sklearn.preprocessing import OneHotEncoder
+from sklearn.ensemble import RandomForestRegressor
+from sklearn.metrics import mean_absolute_error
+from astral import LocationInfo
+from astral.sun import sun
+
+# %% Generate Phase1b dataset
+
+dw_directory = "./data"
+
+no_stations = np.linspace(201, 275, 75)
+
+dataset = pd.DataFrame()
+
+model_types = []
+
+for i in no_stations:
+    # # Read dataset
+    filepath = os.path.join(dw_directory, 'Models', 'Models', 'model_station_' + str(int(i)) + '_deploy.csv')
+    #if os.path.exists(filepath):
+        # Read .txt file
+    with open(filepath, 'r') as f:
+         data_v = pd.read_csv(f)
+         
+    if len(dataset) == 0:
+        dataset = data_v
+    else:
+        dataset = dataset.append(data_v)
+
+        
+filepath = os.path.join(dw_directory, 'test.csv')
+#if os.path.exists(filepath):
+# Read .txt file
+with open(filepath, 'r') as f:
+    final_test = pd.read_csv(f)   
