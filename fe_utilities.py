@@ -36,7 +36,7 @@ def interpolation(dataset,interpolationMethod):
         print("Error: Interpolation Method not recognised")
         exit
 
-    return output    
+    return output
 
 def weekday_handler(dataset,weekdayMethod,days):
     if weekdayMethod == 'dotw':
