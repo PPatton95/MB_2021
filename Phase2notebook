@@ -146,7 +146,7 @@ for m in model_types:
         #plt.close()
 
         #df = pd.DataFrame(np.random.randn(100, 3))
-        model_gen_test[(np.abs(stats.zscore(model_gen_test)) < 3).all(axis=1)]
+        model_gen_test = model_gen_test[(np.abs(stats.zscore(model_gen_test)) < 3).all(axis=1)]
 
         av = [model_gen_test[i].mean()]
         if len(av_weights) ==0:
