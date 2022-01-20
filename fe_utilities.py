@@ -16,6 +16,12 @@ from sklearn.impute import SimpleImputer
 from sklearn.decomposition import PCA
  
 def interpolation(dataset,interpolationMethod):
+    
+    if type(dataset) == type(pd.DataFrame):
+        dataset = dataset.values
+
+
+
     if interpolationMethod == "sImpute":
         imp_mean = SimpleImputer(missing_values=np.nan, strategy='median')      
         imp_mean.fit(dataset)
@@ -37,20 +43,21 @@ def weekday_handler(dataset,weekdayMethod,days):
         output = pd.concat([dataset, days.reindex(dataset.index)], axis=1)
 
     elif weekdayMethod == 'wk_wknd':
-        wk = ['Monday','Tuesday','Wednesday','Thursday']
-        wknd = ['Friday','Saturday','Sunday']
+        wk = ['Monday','Tuesday','Wednesday','Thursday','Friday']
+        wknd = ['Saturday','Sunday']
         
-        wk_array = [0]*len(days)
-        for day in wk:
-            wk_array = [x + y for x,y in zip(wk_array,days[day])]
+        # wk_array = [0]*len(days)
+        # for day in wk:
+        #     wk_array = [x + y for x,y in zip(wk_array,days[day])]
         
         wknd_array = [0]*len(days)
+
         for day in wknd:
             wknd_array = [x + y for x,y in zip(wknd_array,days[day])]
 
-        wk_wnd_df = pd.DataFrame({'week': wk_array, 'weekend': wknd_array})
-
-        output = pd.concat([dataset, wk_wkn_df.reindex(dataset.index)], axis=1)
+        # wk_wknd_df = pd.DataFrame({'week': wk_array, 'weekend': wknd_array})
+        wk_wknd_df = pd.DataFrame({'weekend': wknd_array})
+        output = pd.concat([dataset, wk_wknd_df.reindex(dataset.index)], axis=1)
         #cols_wk = pd.DataFrame()
 
         wk_wknd_plot = False
@@ -82,6 +89,7 @@ def darkness(dataset):
         s = sun(city.observer, date=i)
         srise = s['sunrise'].replace(tzinfo=None)
         sset = s['sunset'].replace(tzinfo=None)
+        
         if i < sset and i > srise:
             d = 0
         else:
