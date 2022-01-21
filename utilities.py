@@ -35,7 +35,7 @@ def data_saver(config,save_list,XorY):
                 pickle_list = pickle.load(f)
 
                 if pickle_list[0] == config:
-                    saveFlag = 'n'
+                    #saveFlag = 'n'
                     while True:
                             saveFlag = input("Dataframe with current configuration already exists:  " + fname + "| Do you want to overwrite? (y/n) ")
                             if saveFlag not in ["y","n"]:

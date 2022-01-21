@@ -26,7 +26,7 @@ testFlag = True
 # Configure dataset generation
 interpolationMethod = 'sImpute' # "sImpute" or "delete"
 weekdayMethod = 'dotw' # 'dotw' or 'wk_wknd'
-daylight_switch = False
+daylight_switch = True
 stationProximity_switch = False
 scale_switch = True
 

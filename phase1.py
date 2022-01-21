@@ -42,7 +42,7 @@ load_config = {"Group"               :'C_individual',
                "Test"                :False,
                "Interpolation Method":'sImpute', # "sImpute" or "delete"
                "Weekday Method"      :'dotw',    # 'dotw' or 'wk_wknd'
-               "Light_Dark"          :False,
+               "Light_Dark"          :True,
                "Station Proximity"   :False,
                "Scale Data"          :True}
 
