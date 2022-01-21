@@ -15,9 +15,9 @@ import pickle
 from utilities import data_saver
 from fe_utilities import interpolation, weekday_handler, darkness, pca_app, station_proximity
 
-data_group = 'C_individual'
-features = (['station','latitude','longitude',
-            'numDocks','bikes_3h_ago', 
+data_group = 'D_individual'
+features = (['station','latitude','longitude','darkness',
+            'numDocks','bikes_3h_ago','weekhour','weekend', 
             'full_profile_3h_diff_bikes','full_profile_bikes'])
 # Save or no
 saveMode = True
@@ -25,7 +25,7 @@ testFlag = True
 
 # Configure dataset generation
 interpolationMethod = 'sImpute' # "sImpute" or "delete"
-weekdayMethod = 'dotw' # 'dotw' or 'wk_wknd'
+weekdayMethod = 'wk_wknd' # 'dotw' or 'wk_wknd'
 daylight_switch = True
 stationProximity_switch = False
 scale_switch = True
@@ -101,9 +101,8 @@ if scale_switch == True:
 
 redundant_columns = (['year','month','precipitation.l.m2',
                         'short_profile_3h_diff_bikes','short_profile_bikes',
-                        'timestamp','day', 'hour', 'Monday','Tuesday',
-                        'Wednesday','Thursday','Friday','Saturday','Sunday',
-                        'weekhour','isHoliday','windMaxSpeed.m.s','windMeanSpeed.m.s',
+                        'timestamp','day', 'hour',
+                        'isHoliday','windMaxSpeed.m.s','windMeanSpeed.m.s',
                         'windDirection.grades','temperature.C','relHumidity.HR',
                         'airPressure.mb'])
 dataset = dataset.drop(redundant_columns,axis =1)
@@ -130,12 +129,12 @@ config = {"Group"               :data_group,
 if saveMode == True:
     if testFlag == False:
         dataSETS = [dataset,dataset_y]
+        xy_dict = {"Name":['X','Y'],"Data":dataSETS}
     elif testFlag == True:
         dataSETS = [dataset]
+        xy_dict = {"Name":['X_test'],"Data":dataSETS}
     else:
         raise ValueError("testFlag should be True or False")
-
-    xy_dict = {"Name":['X','Y'],"Data":dataSETS}
     
     for i in range(0,len(dataSETS)):
         df = xy_dict["Data"][i]
@@ -144,7 +143,7 @@ if saveMode == True:
         all_stations = df
         save_list = [config,all_stations]
 
-        if XorY == 'X':
+        if 'X' in XorY:
             stations = pd.unique(df['station']) # Return ID of indiviual stations
 
             for station in stations:
@@ -160,6 +159,7 @@ if saveMode == True:
                 idx = dataset.index[xy_dict["Data"][i-1]['station'] == station].tolist()
                 save_list.append(df.iloc[idx])
 
+            
             data_saver(config,save_list,XorY)
         else:
             raise ValueError("XorY must be 'X' or 'Y'")

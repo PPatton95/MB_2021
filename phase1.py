@@ -32,16 +32,15 @@ from utilities import data_loader, data_saver
 Train_flag = True
 Test_flag = True
 
-features = (['station','latitude','longitude',
-            'numDocks','bikes_3h_ago', 
+features = (['station','latitude','longitude','darkness',
+            'numDocks','bikes_3h_ago','weekhour','weekend', 
             'full_profile_3h_diff_bikes','full_profile_bikes'])
-
 # %% Load Dataset
-load_config = {"Group"               :'C_individual',
+load_config = {"Group"               :'D_individual',
                "Features"            :features,
                "Test"                :False,
                "Interpolation Method":'sImpute', # "sImpute" or "delete"
-               "Weekday Method"      :'dotw',    # 'dotw' or 'wk_wknd'
+               "Weekday Method"      :'wk_wknd',    # 'dotw' or 'wk_wknd'
                "Light_Dark"          :True,
                "Station Proximity"   :False,
                "Scale Data"          :True}
@@ -71,13 +70,13 @@ models = [model1, model5]
 
 model = model1
 
-# kernel1 = 1.0 * Matern(length_scale=1.0,length_scale_bounds=(1e-5,100000), nu=1.5)
+# kernel1 = 1.0 * Matern(length_scale=1.0,length_scale_bounds=(1e-5,100000), nu=0.5)
 # kernel2 = WhiteKernel(noise_level=2.0)
 # kernel = kernel1 + kernel2
 # model = GaussianProcessRegressor(kernel=kernel,random_state=0)
 
-model = DecisionTreeRegressor(min_samples_leaf=1, random_state=0)
-# model = RandomForestRegressor(n_estimators=100, max_features=15,min_samples_leaf=5, random_state=0)
+model = DecisionTreeRegressor(min_samples_leaf=10, random_state=0)
+# model = RandomForestRegressor(n_estimators=100,min_samples_leaf=30, random_state=0)
 #%%
 
 def preprocess(df):
@@ -140,10 +139,10 @@ print("Validation: ",np.mean(validation_ind['MAE']))
 training_all   = {"predictions":[],"MAE":[]}
 validation_all = {"predictions":[],"MAE":[]}
 
-btx, bvx, bty, bvy = train_test_split(all_stations_X,
+btx, bvx, bty, bvy = train_test_split(all_stations_X.drop(['station'],axis = 1),
                                     all_stations_Y, 
-                                    train_size=0.4, 
-                                    test_size=0.4,
+                                    train_size=0.8, 
+                                    test_size=0.2,
                                     random_state=0)
 
 
@@ -173,12 +172,12 @@ print("Ind Stations - Validation: ",np.mean(validation_ind["MAE"]))
 print("All Stations - Validation: ",validation_all["MAE"])
 # %%
     # if Test_flag == True:
-load_config = {"Group"               :'C_individual',
+load_config = {"Group"               :'D_individual',
                "Features"            :features,
                "Test"                :True,
                "Interpolation Method":'sImpute', # "sImpute" or "delete"
-               "Weekday Method"      :'dotw',    # 'dotw' or 'wk_wknd'
-               "Light_Dark"          :False,
+               "Weekday Method"      :'wk_wknd',    # 'dotw' or 'wk_wknd'
+               "Light_Dark"          :True,
                "Station Proximity"   :False,
                "Scale Data"          :True}
 
@@ -204,7 +203,7 @@ for i in range(0,len(individual_stations_X)):
 
 #%%
 model_name = "all_stations"
-btx = all_stations_X.drop(['station','latitude','longitude','numDocks'],axis = 1)
+btx = all_stations_X.drop(['station'],axis=1)
 bty = np.zeros(len(btx))
 predictions, MAE = bike_inference(model,model_name,[btx,bty])
 test_all["predictions"]=predictions
@@ -214,12 +213,12 @@ test_all["MAE"]        =MAE
 ind_test = pd.DataFrame({"bikes":test_ind["predictions"]})
 ind_test = ind_test.round()
 ind_test.index+=1
-ind_test.to_csv('data/USER/Submissions/' + 'GPR_groupC_individual_model' +'submission.csv',header=['bikes'])
+ind_test.to_csv('data/USER/Submissions/' + 'Regressiontree_groupD_individual_model' +'submission.csv',header=['bikes'])
 # %%
 
 all_test = pd.DataFrame({"bikes":test_all["predictions"]})
 all_test = all_test.round()
 all_test.index+=1
-all_test.to_csv('data/USER/Submissions/' + 'GPR_groupC_all_stations' +'submission.csv',header=['bikes'])
+all_test.to_csv('data/USER/Submissions/' + 'Regressiontree_groupD_all_stations' +'submission.csv',header=['bikes'])
 
 # %%
