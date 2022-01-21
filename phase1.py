@@ -67,7 +67,7 @@ model5 = ExtraTreesRegressor(n_estimators=100, random_state=0)
 model6 = BaggingRegressor(base_estimator=SVR(),
                                  n_estimators=10, random_state=0)
 
-models = [model1, model2, model3, model4, model5, model6]
+models = [model1, model5]
 
 model = model1
 
