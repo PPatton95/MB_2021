@@ -35,6 +35,7 @@ def data_saver(config,save_list,XorY):
                 pickle_list = pickle.load(f)
 
                 if pickle_list[0] == config:
+                    print(config)
                     saveFlag = 'n'
                     while True:
                             saveFlag = input("Dataframe with current configuration already exists:  " + fname + "| Do you want to overwrite? (y/n) ")
@@ -60,16 +61,18 @@ def data_loader(load_config,XorY):
         with open(os.path.join(df_directory, filename), 'rb') as f:
             pickle_list = pickle.load(f)
 
-            if pickle_list[0] == load_config and XorY in filename:
-                print("Data loaded from ",os.path.join(df_directory, filename))
-                all_stations = pickle_list[1]
-                ind_stations = []
+            if pickle_list[0] == load_config:
+                if XorY in filename:
+                    print("Data loaded from ",os.path.join(df_directory, filename))
+                    all_stations = pickle_list[1]
+                    ind_stations = []
                 
-                for station in pickle_list[2:]:
-                    ind_stations.append(station)
-                    config_match = True
+                    for station in pickle_list[2:]:
+                        ind_stations.append(station)
+                        config_match = True
 
     if config_match == False:
+        print(load_config)
         raise NameError('Configuration does not match any current dataframes. Check configuration or generate new data.')
 
     return all_stations,ind_stations

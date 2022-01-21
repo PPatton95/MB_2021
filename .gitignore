@@ -4,7 +4,7 @@
 /data/*
 !data/Models/Models/
 !data/Train/Train/
-/__pycache__/
+__pycache__
 /.ipynb_checkpoints/
 /ENV_DIR
 =======
