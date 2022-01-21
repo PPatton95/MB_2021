@@ -75,8 +75,8 @@ model = model1
 # kernel = kernel1 + kernel2
 # model = GaussianProcessRegressor(kernel=kernel,random_state=0)
 
-model = DecisionTreeRegressor(min_samples_leaf=10, random_state=0)
-# model = RandomForestRegressor(n_estimators=100,min_samples_leaf=30, random_state=0)
+# model = DecisionTreeRegressor(min_samples_leaf=10, random_state=0)
+model = RandomForestRegressor(n_estimators=100,min_samples_leaf=5, random_state=0)
 #%%
 
 def preprocess(df):
@@ -210,15 +210,17 @@ test_all["predictions"]=predictions
 test_all["MAE"]        =MAE
 # %%
 
-ind_test = pd.DataFrame({"bikes":test_ind["predictions"]})
+ind_test = pd.DataFrame({["bikes"]:test_ind["predictions"]})
+ind_test.index.name = "Id"
 ind_test = ind_test.round()
 ind_test.index+=1
-ind_test.to_csv('data/USER/Submissions/' + 'Regressiontree_groupD_individual_model' +'submission.csv',header=['bikes'])
+ind_test.to_csv('data/USER/Submissions/' + 'RF_groupD_individual_model' +'submission.csv',header=['bikes'])
 # %%
 
-all_test = pd.DataFrame({"bikes":test_all["predictions"]})
+all_test = pd.DataFrame({["bikes"]:test_all["predictions"]})
+all_test.index.name = "Id"
 all_test = all_test.round()
 all_test.index+=1
-all_test.to_csv('data/USER/Submissions/' + 'Regressiontree_groupD_all_stations' +'submission.csv',header=['bikes'])
+all_test.to_csv('data/USER/Submissions/' + 'RF_groupD_all_stations' +'submission.csv',header=['bikes'])
 
 # %%
