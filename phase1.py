@@ -29,7 +29,7 @@ from sklearn.metrics import mean_absolute_error
 from model_train_eval import bike_inference, bike_trainer
 from utilities import data_loader, data_saver
 
-Train_flag = True
+Train_flag = False
 Test_flag = True
 
 features = (['station','latitude','longitude','darkness',
@@ -54,7 +54,9 @@ from sklearn.ensemble import AdaBoostRegressor, ExtraTreesRegressor
 from sklearn import linear_model
 from sklearn.linear_model import SGDRegressor
 from sklearn.svm import SVR
-from sklearn.ensemble import BaggingRegressor
+from sklearn.ensemble import BaggingRegressor, GradientBoostingClassifier
+from sklearn.model_selection import GridSearchCV
+
 # Define model
 
 
@@ -70,12 +72,35 @@ models = [model1, model5]
 
 model = model1
 
+param_grid = {
+    'bootstrap': [True],
+    'max_depth': [80, 90, 100, 110],
+    'max_features': [2, 3],
+    'min_samples_leaf': [3, 4, 5],
+    'min_samples_split': [8, 10, 12],
+    'n_estimators': [100, 200, 300, 1000]
+}
+
+param_grid = {
+    'bootstrap': [True],
+    'max_depth': [80],
+    'max_features': [2],
+    'min_samples_leaf': [3,4],
+    'min_samples_split': [8],
+    'n_estimators': [100]
+}
+
 # kernel1 = 1.0 * Matern(length_scale=1.0,length_scale_bounds=(1e-5,100000), nu=0.5)
 # kernel2 = WhiteKernel(noise_level=2.0)
 # kernel = kernel1 + kernel2
 # model = GaussianProcessRegressor(kernel=kernel,random_state=0)
 
 model = DecisionTreeRegressor(min_samples_leaf=10, random_state=0)
+
+rf = RandomForestRegressor()
+model = GridSearchCV(estimator = rf, param_grid = param_grid, 
+                          cv = 3, n_jobs = -1, verbose = 2)
+
 # model = RandomForestRegressor(n_estimators=100,min_samples_leaf=30, random_state=0)
 #%%
 
@@ -165,10 +190,10 @@ validation_all["MAE"]        =MAE
 
 
 # %%
-print("Ind Stations - Training: ",np.mean(training_ind["MAE"]))
+#print("Ind Stations - Training: ",np.mean(training_ind["MAE"]))
 print("All Stations - Training: ",training_all["MAE"])
 
-print("Ind Stations - Validation: ",np.mean(validation_ind["MAE"]))
+#print("Ind Stations - Validation: ",np.mean(validation_ind["MAE"]))
 print("All Stations - Validation: ",validation_all["MAE"])
 # %%
     # if Test_flag == True:
@@ -188,7 +213,7 @@ all_stations_X, individual_stations_X = data_loader(load_config,'X')
 
 test_all   = {"predictions":[],"MAE":[]}
 test_ind   = {"predictions":[],"MAE":[]}
-
+#%%
 for i in range(0,len(individual_stations_X)):
     model_name = "station_"+ str(i)
 
@@ -221,4 +246,29 @@ all_test = all_test.round()
 all_test.index+=1
 all_test.to_csv('data/USER/Submissions/' + 'Regressiontree_groupD_all_stations' +'submission.csv',header=['bikes'])
 
+# %%
+def plot_grid_search(cv_results, grid_param_1, grid_param_2, name_param_1, name_param_2):
+    # Get Test Scores Mean and std for each grid search
+    scores_mean = cv_results['mean_test_score']
+    scores_mean = np.array(scores_mean).reshape(len(grid_param_2),len(grid_param_1))
+
+    scores_sd = cv_results['std_test_score']
+    scores_sd = np.array(scores_sd).reshape(len(grid_param_2),len(grid_param_1))
+
+    # Plot Grid search scores
+    _, ax = plt.subplots(1,1)
+
+    # Param1 is the X-axis, Param 2 is represented as a different curve (color line)
+    for idx, val in enumerate(grid_param_2):
+        ax.plot(grid_param_1, scores_mean[idx,:], '-o', label= name_param_2 + ': ' + str(val))
+
+    ax.set_title("Grid Search Scores", fontsize=20, fontweight='bold')
+    ax.set_xlabel(name_param_1, fontsize=16)
+    ax.set_ylabel('CV Average Score', fontsize=16)
+    ax.legend(loc="best", fontsize=15)
+    ax.grid('on')
+
+
+# Calling Method 
+plot_grid_search(bike_trainer.cv_results_, 'N Estimators', 'Max Features')
 # %%
