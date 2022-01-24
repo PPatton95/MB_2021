@@ -8,7 +8,6 @@ Created on Fri Jan 14 14:15:11 2022
 #%%
 
 ## General libraries
-## General libraries
 import numpy as np # Numpy
 import pandas as pd # Pandas
 import pandas.plotting
@@ -233,8 +232,8 @@ from sklearn.feature_selection import mutual_info_regression
 from sklearn.preprocessing import MinMaxScaler
 #dataset_X, dataset_y = load_breast_cancer(return_X_y=True)
 
-dataset_X = data_ts.drop(['bikes'], axis=1).copy()
-dataset_y = data_ts['bikes'].astype(float)
+dataset_X = datasetb.drop(['bikes'], axis=1).copy()
+dataset_y = datasetb['bikes'].astype(float)
 
 scaler = MinMaxScaler()
 scaler.fit(dataset_X)
@@ -262,8 +261,8 @@ impfeat= impfeat1.append(impfeat2)
 impfeat = impfeat['feature'].tolist()
 
 # %% Pipeline
-dataset_X = datasetb.drop(['bikes'], axis=1).copy()
-dataset_y = datasetb['bikes'].copy()
+#dataset_X = datasetb.drop(['bikes'], axis=1).copy()
+#dataset_y = datasetb['bikes'].copy()
 
 #%%
 
@@ -310,6 +309,7 @@ from sklearn import linear_model
 from sklearn.linear_model import SGDRegressor
 from sklearn.svm import SVR
 from sklearn.ensemble import BaggingRegressor
+from sklearn.model_selection import GridSearchCV
 # Define model
 
 
@@ -320,27 +320,87 @@ model4 = AdaBoostRegressor(random_state=0, n_estimators=500)
 model5 = ExtraTreesRegressor(n_estimators=100, random_state=0)
 model6 = BaggingRegressor(base_estimator=SVR(),
                                  n_estimators=10, random_state=0)
-models = [model1]
+
+param_grid = {
+    'bootstrap': [True],
+    'max_depth': [100,200,500],
+    'max_features': [4,6,8,10],
+    'min_samples_leaf': [20],
+    'min_samples_split': [10],
+    'n_estimators': [500]
+}
+
+rf = RandomForestRegressor()
+model = GridSearchCV(estimator = rf, param_grid = param_grid, 
+                          cv = 3, n_jobs = -1, verbose = 2)
+
+#%%
+#models = [model1]
 #models = [model2]
 # Bundle preprocessing and modeling code in a pipeline
 n = 0
-for i in models:
-    n = n+1
-    clf = Pipeline(steps=[('model', i)
-                     ])
+#for i in models:
+n = n+1
+#clf = Pipeline(steps=[('model', model)
+#                     ])
 
+clf = model
 # Preprocessing of training data, fit model 
-    clf.fit(X_train, y_train)
+clf.fit(X_train, y_train)
 
 # Preprocessing of validation data, get predictions
-    preds = clf.predict(X_test)
+preds = clf.predict(X_test)
 
-    print('MAE using model {}'.format(str(n)), mean_absolute_error(y_test, preds))
+print('MAE using model {}'.format(str(n)), mean_absolute_error(y_test, preds))
 # %%
 from sklearn.model_selection import cross_val_score
 scores = cross_val_score(clf, X_train, y_train, cv=5)
+#%%
+
+results = clf.cv_results_
+print(results.keys())
+
+#%%
+def plot_grid_search(cv_results, grid_param_1, grid_param_2, name_param_1, name_param_2):
+    # Get Test Scores Mean and std for each grid search
+    scores_mean = cv_results['mean_test_score']
+    print(scores_mean)
+
+    print(np.shape(grid_param_1))
+    print(grid_param_2)
+    print(np.shape(scores_mean))
+
+    grid_param_1 = np.array(grid_param_1)
+    grid_param_2 = np.array(grid_param_2)
+    print(np.shape(grid_param_1))
+    
+    scores_mean = np.array(scores_mean).reshape(len(grid_param_1),len(grid_param_2))
+    print(np.shape(scores_mean))
+    print(scores_mean)
+    scores_sd = cv_results['std_test_score']
+    scores_sd = np.array(scores_sd).reshape(np.size(grid_param_1),np.size(grid_param_2))
+    
+    # Plot Grid search scores
+    _, ax = plt.subplots(1,1)
+
+    # Param1 is the X-axis, Param 2 is represented as a different curve (color line)
+    for idx, val in enumerate(grid_param_1):
+        ax.plot(grid_param_2, scores_sd[idx,:], '-o', label= name_param_2 + ': ' + str(val))
+
+    ax.set_title("Grid Search Scores", fontsize=20, fontweight='bold')
+    ax.set_xlabel(name_param_2, fontsize=16)
+    ax.set_ylabel('CV Average Score', fontsize=16)
+    ax.legend(loc='center left', bbox_to_anchor=(1, 0.5))
+    ax.grid('on')
+
+
+# Calling Method 
+plot_grid_search(clf.cv_results_, param_grid['max_features'], param_grid['max_depth'], 'max_features', 'max_depth')
 
 # %% Final Test
+'''
+final test
+'''
 
 
 enc = OneHotEncoder(handle_unknown='ignore')
