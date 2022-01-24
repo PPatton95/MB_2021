@@ -1,3 +1,4 @@
+
 #%%
 # %load_ext autoreload
 # %autoreload 2
@@ -29,19 +30,26 @@ from sklearn.metrics import mean_absolute_error
 from model_train_eval import bike_inference, bike_trainer
 from utilities import data_loader, data_saver
 
-Train_flag = False
+Train_flag = True
 Test_flag = True
 
-features = (['station','latitude','longitude','darkness',
-            'numDocks','bikes_3h_ago','weekhour','weekend', 
-            'full_profile_3h_diff_bikes','full_profile_bikes'])
+# GROUP E
+features = (['airPressure.mb', 'bikes_3h_ago', 'day', 'full', 
+'full_profile_3h_diff_bikes', 'full_profile_bikes', 'full_temp', 
+'hour', 'isHoliday', 'latitude', 'longitude', 'month', 'numDocks', 
+'precipitation.l.m2', 'relHumidity.HR', 'short', 'short_full', 
+'short_full_temp', 'short_profile_3h_diff_bikes', 'short_profile_bikes', 
+'short_temp', 'station', 'temperature.C', 'timestamp', 'weekend', 'weekhour', 
+'windDirection.grades', 'windMaxSpeed.m.s', 'windMeanSpeed.m.s', 'year'])
+
+
 # %% Load Dataset
-load_config = {"Group"               :'D_individual',
+load_config = {"Group"               :'F_individual',
                "Features"            :features,
                "Test"                :False,
                "Interpolation Method":'sImpute', # "sImpute" or "delete"
                "Weekday Method"      :'wk_wknd',    # 'dotw' or 'wk_wknd'
-               "Light_Dark"          :True,
+               "Light_Dark"          :False,
                "Station Proximity"   :False,
                "Scale Data"          :True}
 
@@ -49,15 +57,19 @@ all_stations_X, individual_stations_X = data_loader(load_config,'X')
 all_stations_Y, individual_stations_Y = data_loader(load_config,'Y')
 datasets = [[all_stations_X,all_stations_Y],
             [individual_stations_X,individual_stations_Y]]
+
+print(all_stations_X.columns.values)
 # %% Define model
 from sklearn.ensemble import AdaBoostRegressor, ExtraTreesRegressor
 from sklearn import linear_model
 from sklearn.linear_model import SGDRegressor
 from sklearn.svm import SVR
-from sklearn.ensemble import BaggingRegressor, GradientBoostingClassifier
-from sklearn.model_selection import GridSearchCV
-
+from sklearn.ensemble import BaggingRegressor
 # Define model
+# %%
+# %% Pipeline
+columnList =  ['full','bikes_3h_ago','full_profile_bikes']
+
 
 
 model1 = RandomForestRegressor(n_estimators=100, random_state=0)
@@ -72,31 +84,13 @@ models = [model1, model5]
 
 model = model1
 
-param_grid = {
-    'bootstrap': [True],
-    'max_depth': [80, 90, 100, 110],
-    'max_features': [2, 3],
-    'min_samples_leaf': [3, 4, 5],
-    'min_samples_split': [8, 10, 12],
-    'n_estimators': [100, 200, 300, 1000]
-}
-
-param_grid = {
-    'bootstrap': [True],
-    'max_depth': [80],
-    'max_features': [2],
-    'min_samples_leaf': [3,4],
-    'min_samples_split': [8],
-    'n_estimators': [100]
-}
-
-# kernel1 = 1.0 * Matern(length_scale=1.0,length_scale_bounds=(1e-5,100000), nu=0.5)
-# kernel2 = WhiteKernel(noise_level=2.0)
-# kernel = kernel1 + kernel2
-# model = GaussianProcessRegressor(kernel=kernel,random_state=0)
+kernel1 = 1.0 * Matern(length_scale=1.0,length_scale_bounds=(1e-5,100000), nu=0.5)
+kernel2 = WhiteKernel(noise_level=2.0)
+kernel = kernel1 + kernel2
+model = GaussianProcessRegressor(kernel=kernel,random_state=0)
 
 # model = DecisionTreeRegressor(min_samples_leaf=10, random_state=0)
-model = RandomForestRegressor(n_estimators=100,max_features = 3,min_samples_leaf=10, random_state=0)
+# model = RandomForestRegressor(n_estimators=100,min_samples_leaf=1, random_state=0)
 #%%
 
 def preprocess(df):
@@ -113,7 +107,8 @@ def preprocess(df):
     df = df[my_cols].copy()
     return df
 
-
+print(individual_stations_X[0].columns.values)
+print(all_stations_X.columns.values)
 
 # %% PHASE 1A: Individually Trained Models
 A_trainX        = []
@@ -124,10 +119,14 @@ A_validationY   = []
 training_ind   = {"predictions":[],"MAE":[]}
 validation_ind = {"predictions":[],"MAE":[]}
 
+
+
 for i in range(0,len(individual_stations_X)):
     print("Station ",i, " of ", len(individual_stations_X))
-    X = individual_stations_X[i].drop(['station','latitude','longitude','numDocks'],axis = 1)
+    
+    # X = individual_stations_X[i].drop(['station','latitude','longitude','numDocks'],axis = 1)
     Y = individual_stations_Y[i]
+    X = individual_stations_X[i][columnList].copy()
 
     atx,avx,aty,avy = train_test_split(X,Y, 
                                        train_size=0.8, 
@@ -159,11 +158,18 @@ print("Validation: ",np.mean(validation_ind['MAE']))
 training_all   = {"predictions":[],"MAE":[]}
 validation_all = {"predictions":[],"MAE":[]}
 
-btx, bvx, bty, bvy = train_test_split(all_stations_X.drop(['station'],axis = 1),
+# btx, bvx, bty, bvy = train_test_split(all_stations_X.drop(['station'],axis = 1),
+#                                     all_stations_Y, 
+#                                     train_size=0.8, 
+#                                     test_size=0.2,
+#                                     random_state=0)
+
+btx, bvx, bty, bvy = train_test_split(all_stations_X[columnList].copy(),
                                     all_stations_Y, 
                                     train_size=0.8, 
                                     test_size=0.2,
                                     random_state=0)
+
 
 
 model_name = 'all_stations'
@@ -185,19 +191,19 @@ validation_all["MAE"]        =MAE
 
 
 # %%
-#print("Ind Stations - Training: ",np.mean(training_ind["MAE"]))
+print("Ind Stations - Training: ",np.mean(training_ind["MAE"]))
 print("All Stations - Training: ",training_all["MAE"])
 
-#print("Ind Stations - Validation: ",np.mean(validation_ind["MAE"]))
+print("Ind Stations - Validation: ",np.mean(validation_ind["MAE"]))
 print("All Stations - Validation: ",validation_all["MAE"])
 # %%
     # if Test_flag == True:
-load_config = {"Group"               :'D_individual',
+load_config = {"Group"               :'F_individual',
                "Features"            :features,
                "Test"                :True,
                "Interpolation Method":'sImpute', # "sImpute" or "delete"
                "Weekday Method"      :'wk_wknd',    # 'dotw' or 'wk_wknd'
-               "Light_Dark"          :True,
+               "Light_Dark"          :False,
                "Station Proximity"   :False,
                "Scale Data"          :True}
 
@@ -208,12 +214,13 @@ all_stations_X, individual_stations_X = data_loader(load_config,'X')
 
 test_all   = {"predictions":[],"MAE":[]}
 test_ind   = {"predictions":[],"MAE":[]}
-#%%
+
 for i in range(0,len(individual_stations_X)):
     model_name = "station_"+ str(i)
 
     # atx = individual_stations_X[i].drop(['Id'],axis=1)
-    atx = individual_stations_X[i].drop(['station','latitude','longitude','numDocks'],axis = 1)
+    # atx = individual_stations_X[i].drop(['station','latitude','longitude','numDocks'],axis = 1)
+    atx = individual_stations_X[i][columnList].copy()
     aty = pd.DataFrame(np.zeros(len(atx)))
 
     predictions, MAE = bike_inference(model,model_name,[atx,aty])
@@ -223,7 +230,8 @@ for i in range(0,len(individual_stations_X)):
 
 #%%
 model_name = "all_stations"
-btx = all_stations_X.drop(['station'],axis=1)
+# btx = all_stations_X.drop(['station'],axis=1)
+btx = all_stations_X[columnList].copy()
 bty = np.zeros(len(btx))
 predictions, MAE = bike_inference(model,model_name,[btx,bty])
 test_all["predictions"]=predictions
@@ -234,38 +242,13 @@ ind_test = pd.DataFrame({'bikes':test_ind["predictions"]})
 ind_test.index.name = 'Id'
 ind_test = ind_test.round()
 ind_test.index+=1
-ind_test.to_csv('data/USER/Submissions/' + 'RF_groupD_individual_model' +'submission.csv',header=["bikes"]) #,quoting=csv.QUOTE_NONE)
+ind_test.to_csv('data/USER/Submissions/' + 'GPR_groupFindividual_model' +'submission.csv',header=["bikes"]) #,quoting=csv.QUOTE_NONE)
 # %%
 
 all_test = pd.DataFrame({"bikes":test_all["predictions"]})
 all_test.index.name = 'Id'
 all_test = all_test.round()
 all_test.index+=1
-all_test.to_csv('data/USER/Submissions/' + 'RF_groupD_all_stations' +'submission.csv',header=["bikes"])
+all_test.to_csv('data/USER/Submissions/' + 'GPR_groupF_all_stations' +'submission.csv',header=["bikes"])
 
-# %%
-def plot_grid_search(cv_results, grid_param_1, grid_param_2, name_param_1, name_param_2):
-    # Get Test Scores Mean and std for each grid search
-    scores_mean = cv_results['mean_test_score']
-    scores_mean = np.array(scores_mean).reshape(len(grid_param_2),len(grid_param_1))
-
-    scores_sd = cv_results['std_test_score']
-    scores_sd = np.array(scores_sd).reshape(len(grid_param_2),len(grid_param_1))
-
-    # Plot Grid search scores
-    _, ax = plt.subplots(1,1)
-
-    # Param1 is the X-axis, Param 2 is represented as a different curve (color line)
-    for idx, val in enumerate(grid_param_2):
-        ax.plot(grid_param_1, scores_mean[idx,:], '-o', label= name_param_2 + ': ' + str(val))
-
-    ax.set_title("Grid Search Scores", fontsize=20, fontweight='bold')
-    ax.set_xlabel(name_param_1, fontsize=16)
-    ax.set_ylabel('CV Average Score', fontsize=16)
-    ax.legend(loc="best", fontsize=15)
-    ax.grid('on')
-
-
-# Calling Method 
-plot_grid_search(bike_trainer.cv_results_, 'N Estimators', 'Max Features')
 # %%

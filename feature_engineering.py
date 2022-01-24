@@ -15,20 +15,67 @@ import pickle
 from utilities import data_saver
 from fe_utilities import interpolation, weekday_handler, darkness, pca_app, station_proximity
 
-data_group = 'D_individual'
-features = (['station','latitude','longitude','darkness',
-            'numDocks','bikes_3h_ago','weekhour','weekend', 
-            'full_profile_3h_diff_bikes','full_profile_bikes'])
+data_group = 'A_individual'
+#GROUP D
+#  features = (['station','latitude','longitude','darkness',
+#             'numDocks','bikes_3h_ago','weekhour','weekend', 
+#             'full_profile_3h_diff_bikes','full_profile_bikes'])
+short= ['bikes_3h_ago', 'short_profile_3h_diff_bikes', 'short_profile_bikes']
+short_temp = ['bikes_3h_ago', 'short_profile_3h_diff_bikes', 'short_profile_bikes', 'temperature.C']
+full = ['bikes_3h_ago', 'full_profile_3h_diff_bikes', 'full_profile_bikes']
+full_temp = ['bikes_3h_ago', 'full_profile_3h_diff_bikes', 'full_profile_bikes', 'temperature.C']
+short_full = ['bikes_3h_ago', 'short_profile_3h_diff_bikes', 'short_profile_bikes', 'full_profile_3h_diff_bikes', 'full_profile_bikes']
+short_full_temp = ['bikes_3h_ago', 'short_profile_3h_diff_bikes', 'short_profile_bikes', 'full_profile_3h_diff_bikes', 'full_profile_bikes', 'temperature.C']
+
+
+features = (['station', 'latitude', 'longitude', 'numDocks', 
+'timestamp','year', 'month', 'day', 'hour', 'Monday', 'Tuesday', 
+'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday', 
+'weekhour', 'isHoliday', 'windMaxSpeed.m.s', 'windMeanSpeed.m.s', 
+'windDirection.grades', 'temperature.C', 'relHumidity.HR', 
+'airPressure.mb', 'precipitation.l.m2', 'bikes_3h_ago', 
+'full_profile_3h_diff_bikes','full_profile_bikes', 
+'short_profile_3h_diff_bikes','short_profile_bikes'])
+
+    # if Test_flag == True:
+load_config = {"Group"               :'A_individual',
+               "Features"            :features,
+               "Test"                :True,
+               "Interpolation Method":'sImpute', # "sImpute" or "delete"
+               "Weekday Method"      :'dotw',    # 'dotw' or 'wk_wknd'
+               "Light_Dark"          :False,
+               "Station Proximity"   :False,
+               "Scale Data"          :False}
+
+# # GROUP E
+# features = (['airPressure.mb', 'bikes_3h_ago', 'day', 'full', 
+# 'full_profile_3h_diff_bikes', 'full_profile_bikes', 'full_temp', 
+# 'hour', 'isHoliday', 'latitude', 'longitude', 'month', 'numDocks', 
+# 'precipitation.l.m2', 'relHumidity.HR', 'short', 'short_full', 
+# 'short_full_temp', 'short_profile_3h_diff_bikes', 'short_profile_bikes', 
+# 'short_temp', 'station', 'temperature.C', 'timestamp', 'weekend', 'weekhour', 
+# 'windDirection.grades', 'windMaxSpeed.m.s', 'windMeanSpeed.m.s', 'year'])
 # Save or no
 saveMode = True
 testFlag = True
 
 # Configure dataset generation
 interpolationMethod = 'sImpute' # "sImpute" or "delete"
-weekdayMethod = 'wk_wknd' # 'dotw' or 'wk_wknd'
-daylight_switch = True
+weekdayMethod = 'dotw' # 'dotw' or 'wk_wknd'
+daylight_switch = False
 stationProximity_switch = False
-scale_switch = True
+scale_switch = False
+
+# load_config = {"Group"               :'F_individual',
+#                "Features"            :features,
+#                "Test"                :testFlag,
+#                "Interpolation Method":'sImpute', # "sImpute" or "delete"
+#                "Weekday Method"      :weekdayMethod,    # 'dotw' or 'wk_wknd'
+#                "Light_Dark"          :False,
+#                "Station Proximity"   :False,
+#                "Scale Data"          :scale_switch}
+
+
 
 #Perform correlation studies
 pca_switch = False  # perform PCA analysis & display results
@@ -59,6 +106,37 @@ else:
                 dataset = data_v
             else:
                 dataset = dataset.append(data_v)
+
+
+
+filepath = "/Users/jonathanerskine/Courses/Machine Learning Paradigms/CWK/MB_2021/data/USER/Models/OptimisedLinear/"
+fname = 'opt_linear'
+
+with open(os.path.join(filepath, fname), 'rb') as f:
+    lin_mod = pickle.load(f)
+
+#write script which appends estimated bike numbers from linear model (full)
+
+model_types = ['full_temp','full','short_full_temp','short_full','short_temp','short']
+test_model = ['full_temp']
+
+model_array = []
+y_s = []
+for m in model_types:
+    exec('model_array.append(' + m + ')')
+
+# %%
+for i in range(0,len(model_types)):
+
+    x = dataset[model_array[i]].copy()
+    mod_str = 'rlm_' + model_types[i]
+    y_pred = [lin_mod[mod_str]['Intercept'].values[0]]*len(x)
+
+    for j in range(0,len(model_array[i])):
+        x_comp = [x_c * lin_mod[mod_str][model_array[i][j]].values[0] for x_c in x[model_array[i][j]].values.tolist()]
+        y_pred = [sum(y_c) for y_c in zip(y_pred,x_comp)]
+    
+    # dataset[model_types[i]] = y_pred
 
 
 # %% Encode 'weekday' as one-hot weekday encodings
@@ -99,13 +177,13 @@ if scale_switch == True:
     scaler.fit(dataset)
     dataset = pd.DataFrame(scaler.transform(dataset), columns=dataset.columns)
 
-redundant_columns = (['year','month','precipitation.l.m2',
-                        'short_profile_3h_diff_bikes','short_profile_bikes',
-                        'timestamp','day', 'hour',
-                        'isHoliday','windMaxSpeed.m.s','windMeanSpeed.m.s',
-                        'windDirection.grades','temperature.C','relHumidity.HR',
-                        'airPressure.mb'])
-dataset = dataset.drop(redundant_columns,axis =1)
+# redundant_columns = (['year','month','precipitation.l.m2',
+#                         'short_profile_3h_diff_bikes','short_profile_bikes',
+#                         'timestamp','day', 'hour',
+#                         'isHoliday','windMaxSpeed.m.s','windMeanSpeed.m.s',
+#                         'windDirection.grades','temperature.C','relHumidity.HR',
+#                         'airPressure.mb'])
+# dataset = dataset.drop(redundant_columns,axis =1)
 
 #%%
 if sorted(features) == sorted(dataset.columns.tolist()):
