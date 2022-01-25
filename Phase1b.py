@@ -223,9 +223,11 @@ for sta in no_stations:
         data_ts = data_ts.append(data_t)
 
 
+
+
 #%% Feature Importance
 
-data_ts = data_ts.dropna(axis=1)
+datasetb = data_ts.dropna(axis=1)
 
 #%%
 from sklearn.feature_selection import mutual_info_regression
@@ -323,11 +325,11 @@ model6 = BaggingRegressor(base_estimator=SVR(),
 
 param_grid = {
     'bootstrap': [True],
-    'max_depth': [100,200,500],
-    'max_features': [4,6,8,10],
+    'max_depth': [500],
+    'max_features': [10],
     'min_samples_leaf': [20],
-    'min_samples_split': [10],
-    'n_estimators': [500]
+    'min_samples_split': [2,4,8],
+    'n_estimators': [500,800, 1000]
 }
 
 rf = RandomForestRegressor()

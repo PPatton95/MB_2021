@@ -86,7 +86,19 @@ for i in no_stations:
 sts[i].head()
 
 #%%
-sns.lineplot(data = data_v, x = 'day', y = 'bikes')
+data_bike = data_v.copy()
+data_bike['plot'] = 'bikes'
+data_bike2 = data_v.copy()
+data_bike2['plot'] = 'bikes_3h_ago'
+data_bike['bikes'] = data_bike['bikes_3h_ago']
+
+data_b = data_bike.append(data_bike2)
+data_b = data_b.reset_index()
+
+ax = sns.lineplot(data = data_b, x = 'hour', y = 'bikes', hue = 'plot')
+#ax = sns.lineplot(data = data_v, x = 'hour', y = 'bikes_3h_ago')
+plt.legend()
+plt.show()
 # %%
 
 import geopandas
