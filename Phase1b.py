@@ -195,7 +195,7 @@ datasetb['distance'] = datasetb.apply (lambda row: label_dist(row), axis=1)
 
 #%% timeseries
 from tsfresh.feature_extraction import extract_features, MinimalFCParameters, ComprehensiveFCParameters
-settings = ComprehensiveFCParameters()
+settings = MinimalFCParameters()
 
 def label_dist2 (row):
     x = extracted_features
@@ -257,8 +257,8 @@ prn = pd.DataFrame(pr, columns=['value'])
 prn['feature'] = dataset_X.columns
 
 #%%
-impfeat1 = prn[prn['value'] > 0.5]
-impfeat2 = prn[prn['value'] < -0.5]
+impfeat1 = prn[prn['value'] > 0.4]
+impfeat2 = prn[prn['value'] < -0.4]
 impfeat= impfeat1.append(impfeat2)
 impfeat = impfeat['feature'].tolist()
 
@@ -332,10 +332,12 @@ param_grid = {
     'n_estimators': [500,800, 1000]
 }
 
-rf = RandomForestRegressor()
-model = GridSearchCV(estimator = rf, param_grid = param_grid, 
-                          cv = 3, n_jobs = -1, verbose = 2)
+#rf = RandomForestRegressor()
+#model = GridSearchCV(estimator = rf, param_grid = param_grid, 
+#                          cv = 3, n_jobs = -1, verbose = 2)
 
+
+model = RandomForestRegressor(min_samples_leaf=5, max_features =10)
 #%%
 #models = [model1]
 #models = [model2]
@@ -356,9 +358,12 @@ preds = clf.predict(X_test)
 print('MAE using model {}'.format(str(n)), mean_absolute_error(y_test, preds))
 # %%
 from sklearn.model_selection import cross_val_score
-scores = cross_val_score(clf, X_train, y_train, cv=5)
-#%%
+scoring = 'neg_mean_absolute_error'
 
+scores = cross_val_score(clf, X_train, y_train, cv=5,scoring=scoring)
+#%%
+print(scores.mean())
+#%%
 results = clf.cv_results_
 print(results.keys())
 
